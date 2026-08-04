@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>予約管理</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div>
+        <p class="eyebrow">管理画面</p>
+        <h1>予約管理</h1>
+        <p class="lead">週カレンダーで予約、施術中、予約ブロックをまとめて確認・操作できます。</p>
+      </div>
+      <a class="admin-link" href="/">予約ページ</a>
+    </header>
+
+    <main class="admin-layout">
+      <section class="toolbar">
+        <button id="refreshButton" type="button">更新</button>
+        <a class="button-link" href="/api/bookings.csv">CSV出力</a>
+        <button id="logoutButton" class="secondary-button" type="button">ログアウト</button>
+      </section>
+
+      <section class="panel schedule-panel">
+        <div class="calendar-toolbar">
+          <div>
+            <p class="eyebrow">Dashboard</p>
+            <h2>予約管理カレンダー</h2>
+          </div>
+          <div class="schedule-controls" aria-label="週を移動">
+            <input id="scheduleDateInput" type="date" aria-label="表示する週の日付">
+            <button id="schedulePrevButton" class="secondary-button" type="button">前週</button>
+            <button id="scheduleTodayButton" class="secondary-button" type="button">本日</button>
+            <button id="scheduleNextButton" class="secondary-button" type="button">翌週</button>
+          </div>
+        </div>
+        <div class="calendar-statusbar">
+          <strong id="scheduleDateLabel"></strong>
+          <span id="scheduleCountLabel"></span>
+          <span class="legend-item booking">予約</span>
+          <span class="legend-item treatment">施術中</span>
+          <span class="legend-item block">予約ブロック</span>
+        </div>
+        <div class="schedule-help">空き枠をクリックすると、管理画面から予約追加またはブロック作成ができます。</div>
+        <div id="weeklySchedule" class="weekly-schedule" aria-label="週の予約カレンダー"></div>
+      </section>
+
+      <dialog id="slotDialog" class="slot-dialog">
+        <form id="slotActionForm" class="slot-dialog-card" method="dialog">
+          <div class="dialog-heading">
+            <div>
+              <p class="eyebrow">Selected Slot</p>
+              <h2 id="slotDialogTitle">予約枠</h2>
+              <p id="slotDialogMeta" class="lead"></p>
+            </div>
+            <button id="slotDialogClose" class="secondary-button icon-button" type="button" aria-label="閉じる">×</button>
+          </div>
+
+          <div id="slotExistingPanel" class="slot-existing-panel"></div>
+
+          <div id="slotCreatePanel" class="slot-create-panel">
+            <div class="mode-switch" role="tablist" aria-label="作成する内容">
+              <label><input type="radio" name="slotMode" value="booking" checked> 予約</label>
+              <label><input type="radio" name="slotMode" value="block"> ブロック</label>
+            </div>
+
+            <div id="bookingFields" class="dialog-fields">
+              <div class="two-col">
+                <label>
+                  メニュー
+                  <select id="dialogMenuInput" required></select>
+                </label>
+                <label>
+                  お名前
+                  <input id="dialogNameInput" required placeholder="患者さん名">
+                </label>
+              </div>
+              <div class="two-col">
+                <label>
+                  電話
+                  <input id="dialogPhoneInput" required placeholder="080...">
+                </label>
+                <label>
+                  メール
+                  <input id="dialogEmailInput" type="email">
+                </label>
+              </div>
+              <label>
+                メモ
+                <textarea id="dialogNoteInput" rows="3" placeholder="相談内容や管理メモ"></textarea>
+              </label>
+            </div>
+
+            <div id="blockFields" class="dialog-fields" hidden>
+              <div class="two-col">
+                <label>
+                  終了
+                  <input id="dialogBlockEndInput" type="time" step="1800" required>
+                </label>
+                <label>
+                  管理メモ
+                  <input id="dialogBlockReasonInput" placeholder="例：外出、休憩、勉強会">
+                </label>
+              </div>
+            </div>
+
+            <p id="slotDialogMessage" class="message" role="status"></p>
+            <div class="dialog-actions">
+              <button id="slotSubmitButton" type="submit">追加する</button>
+            </div>
+          </div>
+        </form>
+      </dialog>
+
+      <section class="panel security-panel">
+        <h2>管理パスワード変更</h2>
+        <form id="passwordForm" class="form">
+          <div class="two-col">
+            <label>
+              現在のパスワード
+              <input name="currentPassword" type="password" autocomplete="current-password" required>
+            </label>
+            <label>
+              新しいパスワード
+              <input name="newPassword" type="password" autocomplete="new-password" minlength="8" required>
+            </label>
+          </div>
+          <label>
+            新しいパスワードをもう一度
+            <input name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required>
+          </label>
+          <button type="submit">パスワードを変更</button>
+          <p id="passwordMessage" class="message" role="status"></p>
+        </form>
+      </section>
+
+      <section class="panel settings-panel">
+        <h2>予約ページ設定</h2>
+        <form id="settingsForm" class="form">
+          <div class="two-col">
+            <label>
+              表示名
+              <input name="clinicName" required>
+            </label>
+            <label>
+              予約枠の間隔
+              <select name="slotMinutes">
+                <option value="15">15分</option>
+                <option value="30">30分</option>
+                <option value="45">45分</option>
+                <option value="60">60分</option>
+              </select>
+            </label>
+            <label>
+              1日の予約上限
+              <input name="maxBookingsPerDay" type="number" min="0" max="50" step="1">
+            </label>
+          </div>
+
+          <label>
+            予約ページの説明
+            <textarea name="description" rows="3"></textarea>
+          </label>
+
+          <div class="two-col">
+            <label>
+              基本の開始時間
+              <input name="openTime" type="time" required>
+            </label>
+            <label>
+              基本の終了時間
+              <input name="closeTime" type="time" required>
+            </label>
+            <label>
+              最終受付
+              <input name="lastReceptionTime" type="time" required>
+            </label>
+          </div>
+
+          <fieldset>
+            <legend>毎週の定休日</legend>
+            <div class="weekday-checks">
+              <label><input type="checkbox" name="closedWeekdays" value="0"> 日</label>
+              <label><input type="checkbox" name="closedWeekdays" value="1"> 月</label>
+              <label><input type="checkbox" name="closedWeekdays" value="2"> 火</label>
+              <label><input type="checkbox" name="closedWeekdays" value="3"> 水</label>
+              <label><input type="checkbox" name="closedWeekdays" value="4"> 木</label>
+              <label><input type="checkbox" name="closedWeekdays" value="5"> 金</label>
+              <label><input type="checkbox" name="closedWeekdays" value="6"> 土</label>
+            </div>
+          </fieldset>
+
+          <label>
+            不定休の日付
+            <textarea name="closedDates" rows="4" placeholder="2026-05-20&#10;2026-05-27"></textarea>
+          </label>
+
+          <label>
+            日別営業時間
+            <textarea name="specialHours" rows="4" placeholder="2026-05-21,10:00,16:00&#10;2026-05-28,13:00,19:00"></textarea>
+          </label>
+
+          <div class="block-editor">
+            <div class="section-heading compact-heading">
+              <div>
+                <h3>時間ブロック</h3>
+                <p>特定の日だけ、30分単位で予約不可にできます。</p>
+              </div>
+              <label>
+                ブロックする日
+                <input id="blockDateInput" type="date">
+              </label>
+            </div>
+            <div id="manualBlockGrid" class="manual-block-grid"></div>
+            <p id="manualBlockSummary" class="message"></p>
+          </div>
+
+          <label>
+            ご案内文
+            <textarea name="notice" rows="3"></textarea>
+          </label>
+
+          <div class="two-col">
+            <label>
+              管理者メール
+              <input name="adminEmail" type="email" placeholder="パスワード再設定用">
+            </label>
+            <label>
+              問い合わせメール
+              <input name="contactEmail" type="email">
+            </label>
+          </div>
+
+          <div class="two-col">
+            <label>
+              問い合わせ電話番号
+              <input name="contactPhone">
+            </label>
+          </div>
+
+          <div>
+            <h3>基本メニュー・料金</h3>
+            <div id="menuEditor" class="item-editor"></div>
+            <button id="addMenuButton" class="secondary-button" type="button">メニューを追加</button>
+          </div>
+
+          <div>
+            <h3>オプションメニュー</h3>
+            <div id="optionEditor" class="item-editor"></div>
+            <button id="addOptionButton" class="secondary-button" type="button">オプションを追加</button>
+          </div>
+
+          <button type="submit">設定を保存</button>
+          <p id="settingsMessage" class="message" role="status"></p>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h2>予約一覧</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>日時</th>
+                <th>メニュー</th>
+                <th>お名前</th>
+                <th>連絡先</th>
+                <th>メモ</th>
+                <th>状態</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="bookingRows"></tbody>
+          </table>
+        </div>
+        <p id="emptyMessage" class="message"></p>
+      </section>
+
+      <section class="panel notification-panel">
+        <h2>通知ログ</h2>
+        <p class="lead">メール送信サービスを接続する前の通知控えです。</p>
+        <div id="notificationList" class="notification-list"></div>
+      </section>
+
+      <section class="panel notification-panel">
+        <h2>パスワード再設定申請</h2>
+        <p class="lead">メール送信サービスを接続する前の申請控えです。</p>
+        <div id="resetRequestList" class="notification-list"></div>
+      </section>
+    </main>
+
+    <script src="/admin.js"></script>
+  </body>
+</html>

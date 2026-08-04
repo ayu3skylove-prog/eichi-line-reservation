@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>管理ログイン</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="login-layout">
+      <section class="panel login-panel">
+        <p class="eyebrow">管理者専用</p>
+        <h1>管理画面ログイン</h1>
+        <form id="loginForm" class="form">
+          <label>
+            パスワード
+            <input name="password" type="password" autocomplete="current-password" required>
+          </label>
+          <button type="submit">ログイン</button>
+          <p id="loginMessage" class="message" role="status"></p>
+        </form>
+
+        <details class="reset-details">
+          <summary>パスワードを忘れた場合</summary>
+          <form id="resetRequestForm" class="form">
+            <label>
+              管理者メールアドレス
+              <input name="email" type="email" autocomplete="email" required>
+            </label>
+            <button class="secondary-button" type="submit">再設定を申請</button>
+            <p id="resetRequestMessage" class="message" role="status"></p>
+          </form>
+        </details>
+      </section>
+    </main>
+    <script src="/login.js"></script>
+  </body>
+</html>

@@ -1,0 +1,55 @@
+{
+  "settings": {
+    "clinicName": "美身堂　えいち鍼灸院",
+    "description": "身体・氣・命の流れを整え、本来の自分へ還るための予約ページです。",
+    "openTime": "11:00",
+    "closeTime": "20:00",
+    "lastReceptionTime": "18:00",
+    "slotMinutes": 30,
+    "maxBookingsPerDay": 5,
+    "closedWeekdays": [],
+    "closedDates": [],
+    "specialHours": [],
+    "manualBlocks": [],
+    "notice": "当日は動きやすい服装でお越しください。",
+    "adminEmail": "",
+    "contactEmail": "",
+    "contactPhone": ""
+  },
+  "auth": {
+    "adminPassword": "change-me-before-public",
+    "sessions": []
+  },
+  "menus": [
+    {
+      "id": "hari-basic",
+      "name": "鍼灸施術",
+      "duration": 60,
+      "price": 16000,
+      "description": "身体の状態を見ながら、鍼を中心に整えていく基本の施術です。",
+      "treatmentSummary": "脈・お腹・姿勢・動きなどを見ながら、身体の流れを整えます。"
+    },
+    {
+      "id": "body-session",
+      "name": "身体を整えるセッション",
+      "duration": 90,
+      "price": 24000,
+      "description": "身体・感覚・日常の流れを丁寧に見つめるセッションです。",
+      "treatmentSummary": "身体の状態と日常の癖を一緒に見つめ、本来の感覚に還る土台を整えます。"
+    }
+  ],
+  "options": [
+    {
+      "id": "extra-care",
+      "name": "重点ケア追加",
+      "duration": 20,
+      "price": 3100,
+      "description": "気になる部位をもう少し丁寧に見てほしい方向けの追加オプションです。",
+      "treatmentSummary": ""
+    }
+  ],
+  "notifications": [],
+  "passwordResetRequests": [],
+  "bookings": []
+}
+
