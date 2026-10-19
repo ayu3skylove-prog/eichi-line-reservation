@@ -1304,6 +1304,469 @@ body:has(.admin-layout) .schedule-controls {
   justify-content: flex-end;
 }
 
+/* ─── Menu cards (要件①) ─── */
+
+.menu-card-list {
+  display: grid;
+  gap: 14px;
+}
+
+.menu-card {
+  appearance: none;
+  background: rgba(255, 254, 251, 0.98);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  display: grid;
+  font: inherit;
+  gap: 0;
+  min-height: auto;
+  overflow: hidden;
+  padding: 0;
+  position: relative;
+  text-align: left;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease;
+  width: 100%;
+  white-space: normal;
+}
+
+.menu-card:hover {
+  border-color: #d7c3dc;
+  box-shadow: 0 8px 28px rgba(63, 40, 69, 0.12);
+  transform: translateY(-2px);
+}
+
+.menu-card.selected {
+  border: 2px solid var(--purple);
+  box-shadow: 0 0 0 3px rgba(63, 40, 69, 0.08), var(--shadow-soft);
+}
+
+.menu-card.selected:hover {
+  background: var(--purple-soft);
+}
+
+.menu-card-check {
+  align-items: center;
+  background: var(--purple);
+  border-radius: 50%;
+  color: white;
+  display: none;
+  font-size: 12px;
+  font-weight: 900;
+  height: 26px;
+  justify-content: center;
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  width: 26px;
+  z-index: 2;
+}
+
+.menu-card.selected .menu-card-check {
+  display: flex;
+}
+
+.menu-card-img {
+  aspect-ratio: 16 / 6;
+  display: block;
+  object-fit: cover;
+  width: 100%;
+}
+
+.menu-card-body {
+  display: grid;
+  gap: 5px;
+  padding: 16px 18px 18px;
+}
+
+.menu-card-tagline {
+  color: var(--gold);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: 2px;
+}
+
+.menu-card-name {
+  color: var(--purple-deep);
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.menu-card-meta {
+  color: var(--muted);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  margin-top: 2px;
+}
+
+.menu-card-desc {
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.75;
+  margin-top: 4px;
+}
+
+/* ─── Week Matrix (要件②) ─── */
+
+.week-matrix-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-sm);
+}
+
+.week-matrix {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  display: grid;
+  min-width: 480px;
+  overflow: hidden;
+}
+
+.wm-loading,
+.wm-empty {
+  color: var(--muted);
+  font-weight: 800;
+  grid-column: 1 / -1;
+  padding: 24px 18px;
+}
+
+.wm-corner {
+  align-items: center;
+  background: #f5f0e8;
+  border-bottom: 1px solid var(--line-strong);
+  border-right: 1px solid var(--line-strong);
+  color: var(--muted);
+  display: flex;
+  font-size: 10px;
+  font-weight: 800;
+  justify-content: center;
+  letter-spacing: 0.06em;
+  padding: 10px 4px;
+  position: sticky;
+  left: 0;
+  z-index: 3;
+}
+
+.wm-day-header {
+  align-items: center;
+  background: #faf5ed;
+  border-bottom: 1px solid var(--line-strong);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  justify-content: center;
+  padding: 10px 4px;
+  text-align: center;
+}
+
+.wm-day-header strong {
+  color: var(--purple-deep);
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.wm-day-header span {
+  color: var(--muted);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.wm-day-header.wm-sun {
+  background: #fff3f3;
+}
+
+.wm-day-header.wm-sun strong,
+.wm-day-header.wm-sun span {
+  color: #c04040;
+}
+
+.wm-day-header.wm-sat {
+  background: #f0f4ff;
+}
+
+.wm-day-header.wm-sat strong,
+.wm-day-header.wm-sat span {
+  color: #3060b0;
+}
+
+.wm-day-header.wm-today {
+  background: #fffbe8;
+  border-bottom-color: var(--gold);
+}
+
+.wm-day-header.wm-today strong {
+  color: var(--gold);
+}
+
+.wm-time {
+  align-items: center;
+  background: #faf5ed;
+  border-right: 1px solid var(--line-strong);
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  display: flex;
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+  font-size: 12px;
+  font-weight: 600;
+  justify-content: center;
+  letter-spacing: 0.02em;
+  min-height: 48px;
+  padding: 6px 4px;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+}
+
+.wm-cell {
+  align-items: center;
+  border-right: 1px solid var(--line);
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: center;
+  min-height: 48px;
+  padding: 5px;
+}
+
+.wm-circle-btn {
+  align-items: center;
+  appearance: none;
+  background: #f39800;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(243, 152, 0, 0.36);
+  color: white;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 17px;
+  font-weight: 900;
+  height: 38px;
+  justify-content: center;
+  line-height: 1;
+  min-height: auto;
+  padding: 0;
+  transition: background 0.12s ease, transform 0.1s ease, box-shadow 0.12s ease;
+  width: 38px;
+}
+
+.wm-circle-btn:hover {
+  background: #e08800;
+  border-color: transparent;
+  box-shadow: 0 4px 14px rgba(243, 152, 0, 0.5);
+  transform: scale(1.1);
+}
+
+.wm-circle-btn.selected {
+  background: #c47200;
+  border: 2.5px solid white;
+  box-shadow: 0 0 0 3px #f39800, 0 4px 12px rgba(243, 152, 0, 0.4);
+  transform: scale(1.05);
+}
+
+.wm-x {
+  color: #bdb5be;
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  text-align: center;
+}
+
+/* ─── Timetable (要件②) ─── */
+
+.timetable {
+  display: grid;
+  gap: 20px;
+}
+
+.timetable-empty {
+  color: var(--muted);
+  font-weight: 800;
+  margin: 0;
+  padding: 12px 0;
+}
+
+.timetable-group {
+  display: grid;
+  gap: 10px;
+}
+
+.timetable-group-label {
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding-bottom: 6px;
+}
+
+.timetable-slots {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.timetable-slot {
+  align-items: center;
+  appearance: none;
+  border: 1.5px solid var(--line-strong);
+  border-radius: 14px;
+  display: flex;
+  font: inherit;
+  gap: 10px;
+  min-height: 54px;
+  padding: 10px 14px;
+  text-align: left;
+  transition: background 0.14s ease, border-color 0.14s ease;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.timetable-slot.available {
+  background: #fffefb;
+  cursor: pointer;
+}
+
+.timetable-slot.available:hover {
+  background: var(--purple-soft);
+  border-color: #d7c3dc;
+}
+
+.timetable-slot.available.selected {
+  background: var(--purple-soft);
+  border: 2px solid var(--purple);
+  padding: 9px 13px;
+}
+
+.timetable-slot.unavailable {
+  background: #f5f2ed;
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.timetable-time {
+  color: var(--purple-deep);
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  min-width: 52px;
+}
+
+.timetable-slot.unavailable .timetable-time {
+  color: #9a929b;
+}
+
+.timetable-badge {
+  border-radius: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 3px 9px;
+}
+
+.timetable-slot.available .timetable-badge {
+  background: rgba(63, 40, 69, 0.07);
+  color: var(--purple);
+}
+
+.timetable-slot.available.selected .timetable-badge {
+  background: var(--purple);
+  color: white;
+}
+
+.timetable-slot.unavailable .timetable-badge {
+  background: rgba(0, 0, 0, 0.05);
+  color: #9a929b;
+}
+
+/* ─── 和モダン補強 (要件④) ─── */
+
+body::before {
+  background: linear-gradient(90deg, var(--purple-deep) 0%, #4a2f52 100%);
+}
+
+.flow-card {
+  transition: box-shadow 0.2s ease;
+}
+
+.stepper li.active {
+  color: var(--purple);
+}
+
+.booking-actions button {
+  background: var(--purple);
+  border-color: var(--purple);
+  border-radius: 18px;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  min-height: 56px;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.booking-actions button:hover {
+  background: var(--purple-deep);
+  transform: translateY(-1px);
+}
+
+.booking-actions button.secondary-button {
+  background: #fffaf4;
+  border-color: var(--line-strong);
+  color: var(--purple-deep);
+  font-weight: 700;
+}
+
+.booking-actions button.secondary-button:hover {
+  background: var(--gold-soft);
+  border-color: var(--gold);
+  transform: none;
+}
+
+@media (min-width: 720px) {
+  .menu-card-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .timetable-slots {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 980px) {
+  .menu-card-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .timetable-slot {
+    min-height: 50px;
+    padding: 8px 10px;
+    gap: 6px;
+  }
+
+  .timetable-time {
+    font-size: 14px;
+    min-width: 44px;
+  }
+
+  .timetable-badge {
+    font-size: 11px;
+    padding: 2px 7px;
+  }
+}
+
 @media (max-width: 1180px) {
   .calendar-toolbar {
     align-items: stretch;
@@ -1447,3 +1910,1487 @@ body:has(.admin-layout) .schedule-controls {
     display: grid;
   }
 }
+
+/* ═══════════════════════════════════════════════════════
+   LP ランディングページ  body.lp-page  — 白・生成り基調リニューアル
+═══════════════════════════════════════════════════════ */
+
+:root {
+  /* LP専用トークン（AI感排除・引き算の美） */
+  --lp-white: #FFFFFF;
+  --lp-cream: #FAF9F6;
+  --lp-cream-deep: #F3EDE3;
+  --lp-linen: #EAE3D8;
+  --lp-ink: #2D2D2D;
+  --lp-ink-mid: #5A5555;
+  --lp-ink-muted: #8A8380;
+  --lp-gold: #9A7040;
+  --lp-line: #DDD6CA;
+  --lp-line-subtle: #EDE8E0;
+}
+
+html:has(body.lp-page) {
+  scroll-behavior: smooth;
+}
+
+body.lp-page {
+  background: var(--lp-white);
+  color: var(--lp-ink);
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+}
+
+body.lp-page::before {
+  display: none;
+}
+
+.sr-only {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+/* ─── 汎用コンテナ ─── */
+
+.lp-section {
+  padding: clamp(72px, 10vw, 120px) 0;
+}
+
+.lp-inner {
+  margin: 0 auto;
+  max-width: var(--content);
+  padding: 0 clamp(20px, 5vw, 48px);
+}
+
+/* ─── セクションタイポグラフィ ─── */
+
+.lp-section-eyebrow {
+  color: var(--lp-gold);
+  display: block;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  margin: 0 0 16px;
+  text-transform: uppercase;
+}
+
+.lp-section-title {
+  color: var(--lp-ink);
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+  font-size: clamp(26px, 4.5vw, 40px);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  line-height: 1.45;
+  margin: 0 0 22px;
+}
+
+.lp-section-lead {
+  color: var(--lp-ink-mid);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: clamp(14px, 1.8vw, 16px);
+  line-height: 2.1;
+  margin: 0 0 52px;
+}
+
+/* ─── CTA ボタン（スッキリした細枠の上品なボタン） ─── */
+
+.lp-cta-primary {
+  align-items: center;
+  background: transparent;
+  border: 1.5px solid var(--lp-ink);
+  border-radius: 2px;
+  color: var(--lp-ink);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+  font-size: 14px;
+  font-weight: 600;
+  justify-content: center;
+  letter-spacing: 0.12em;
+  min-height: 52px;
+  padding: 12px 38px;
+  text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease;
+  white-space: nowrap;
+}
+
+.lp-cta-primary:hover {
+  background: var(--lp-ink);
+  color: var(--lp-white);
+}
+
+.lp-cta-secondary {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--lp-line);
+  border-radius: 2px;
+  color: var(--lp-ink-mid);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  justify-content: center;
+  letter-spacing: 0.08em;
+  min-height: 46px;
+  padding: 10px 26px;
+  text-decoration: none;
+  transition: border-color 0.18s ease, color 0.18s ease;
+  white-space: nowrap;
+}
+
+.lp-cta-secondary:hover {
+  border-color: var(--lp-ink);
+  color: var(--lp-ink);
+}
+
+/* LINE ボタン */
+.lp-line-btn,
+.lp-cta-line {
+  align-items: center;
+  background: #06C755;
+  border: 1.5px solid #06C755;
+  border-radius: 2px;
+  color: white;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  justify-content: center;
+  letter-spacing: 0.06em;
+  min-height: 52px;
+  padding: 12px 36px;
+  text-decoration: none;
+  transition: background 0.18s ease, transform 0.12s ease;
+  white-space: nowrap;
+}
+
+.lp-line-btn:hover,
+.lp-cta-line:hover {
+  background: #04a847;
+  border-color: #04a847;
+  color: white;
+  transform: translateY(-1px);
+}
+
+.lp-cta-line-footer {
+  display: inline-flex;
+  margin-top: 18px;
+}
+
+.lp-cta-line-footer:hover {
+  background: #04a847;
+  border-color: #04a847;
+  color: white;
+}
+
+/* ─── ① ヒーロー（実写背景・白オーバーレイ） ─── */
+
+.lp-hero {
+  background-image: url('/images/hero-bg.jpg');
+  background-position: center 30%;
+  background-size: cover;
+  display: flex;
+  flex-direction: column;
+  min-height: clamp(640px, 92vh, 880px);
+  overflow: hidden;
+  position: relative;
+}
+
+/* 白の透過オーバーレイ（写真の清潔感をしっかり見せる） */
+.lp-hero::before {
+  background: rgba(255, 255, 255, 0.65);
+  bottom: 0;
+  content: "";
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 1;
+}
+
+.lp-nav {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  padding: clamp(18px, 3vw, 30px) clamp(22px, 5vw, 52px);
+  position: relative;
+  z-index: 10;
+}
+
+.lp-nav-logo {
+  display: block;
+  line-height: 0;
+}
+
+.lp-logo {
+  height: clamp(36px, 6vw, 52px);
+  max-width: 200px;
+  object-fit: contain;
+  opacity: 0.82;
+  width: auto;
+}
+
+.lp-admin-link {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--lp-line);
+  border-radius: 3px;
+  box-shadow: none;
+  color: var(--lp-ink-mid);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 11px;
+  min-height: 32px;
+  padding: 5px 12px;
+}
+
+.lp-admin-link:hover {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: var(--lp-ink-muted);
+  color: var(--lp-ink);
+}
+
+.lp-hero-body {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(24px, 5vw, 60px) clamp(22px, 6vw, 64px);
+  position: relative;
+  text-align: center;
+  z-index: 5;
+}
+
+/* ヒーロー内の大きなロゴ（看板シンボル） */
+.lp-hero-logo {
+  display: block;
+  filter: drop-shadow(0 6px 24px rgba(0, 0, 0, 0.06));
+  height: auto;
+  margin-bottom: clamp(24px, 3.5vw, 40px);
+  max-width: 88vw;
+  opacity: 0.96;
+  width: clamp(280px, 40vw, 440px);
+}
+
+.lp-hero-eyebrow {
+  color: var(--lp-gold);
+  display: block;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  margin: 0 0 20px;
+  text-transform: uppercase;
+}
+
+.lp-hero-title {
+  color: var(--lp-ink);
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+  font-size: clamp(21px, 4.4vw, 46px);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  line-height: 1.85;
+  margin: 0 0 20px;
+  max-width: 780px;
+}
+
+.lp-hero-sub {
+  color: var(--lp-ink-mid);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: clamp(13px, 1.8vw, 15px);
+  letter-spacing: 0.06em;
+  line-height: 2.1;
+  margin: 0 0 40px;
+}
+
+.lp-hero-sub span {
+  color: var(--lp-ink);
+  display: block;
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+  font-size: 1.2em;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  margin-top: 6px;
+}
+
+.lp-hero-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+}
+
+/* スクロールインジケーター */
+.lp-hero-scroll {
+  align-items: center;
+  bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  left: 50%;
+  pointer-events: none;
+  position: absolute;
+  transform: translateX(-50%);
+  z-index: 5;
+}
+
+.lp-hero-scroll span {
+  color: var(--lp-ink-muted);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+}
+
+.lp-scroll-line {
+  animation: lp-scroll-pulse 2.2s ease-in-out infinite;
+  background: linear-gradient(to bottom, var(--lp-gold), transparent);
+  height: 30px;
+  width: 1px;
+}
+
+@keyframes lp-scroll-pulse {
+  0%, 100% { opacity: 0.35; transform: scaleY(1); }
+  50% { opacity: 0.85; transform: scaleY(1.18); }
+}
+
+/* ─── ② 巡氣調律とは（白ベース・タイルグリッド） ─── */
+
+.lp-pillars {
+  background: var(--lp-white);
+}
+
+.lp-pillars-grid {
+  background: var(--lp-line);
+  border: 1px solid var(--lp-line);
+  display: grid;
+  gap: 1px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.lp-pillar-card {
+  background: var(--lp-white);
+  padding: clamp(30px, 4.5vw, 48px);
+  transition: background 0.22s ease;
+}
+
+.lp-pillar-card:hover {
+  background: var(--lp-cream);
+}
+
+.lp-pillar-card--wide {
+  align-items: start;
+  background: var(--lp-cream);
+  display: grid;
+  gap: 22px;
+  grid-column: 1 / -1;
+  grid-template-columns: auto 1fr;
+}
+
+.lp-pillar-card--wide:hover {
+  background: var(--lp-cream-deep);
+}
+
+.lp-pillar-icon {
+  color: var(--lp-gold);
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+  font-size: clamp(32px, 5.5vw, 50px);
+  font-weight: 600;
+  line-height: 1;
+  margin-bottom: 20px;
+  opacity: 0.65;
+}
+
+.lp-pillar-icon--plus {
+  font-size: clamp(24px, 4vw, 38px);
+  margin-bottom: 0;
+  margin-top: 6px;
+  opacity: 0.5;
+}
+
+.lp-pillar-title {
+  color: var(--lp-ink);
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+  font-size: clamp(15px, 2vw, 18px);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1.65;
+  margin: 0 0 14px;
+}
+
+.lp-pillar-desc {
+  color: var(--lp-ink-mid);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 13px;
+  line-height: 2;
+  margin: 0;
+}
+
+/* サロン写真（セクション下部） */
+.lp-salon-photo-row {
+  margin-top: clamp(52px, 7vw, 88px);
+  overflow: hidden;
+}
+
+.lp-salon-photo-row img {
+  display: block;
+  height: clamp(200px, 36vw, 460px);
+  object-fit: cover;
+  object-position: center;
+  width: 100%;
+}
+
+/* ─── ③ 院長プロフィール（生成り・実写写真） ─── */
+
+.lp-profile {
+  background: var(--lp-cream);
+}
+
+.lp-profile-inner {
+  display: grid;
+  gap: clamp(40px, 6vw, 80px);
+  grid-template-columns: 1fr;
+}
+
+/* 写真カラム */
+.lp-profile-photo {
+  flex-shrink: 0;
+}
+
+.lp-profile-img {
+  border-radius: 8px;
+  display: block;
+  height: auto;
+  max-width: 250px;
+  object-fit: cover;
+  object-position: top center;
+  width: 100%;
+}
+
+.lp-profile-name {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.lp-profile-name .lp-profile-en {
+  color: var(--lp-gold);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: clamp(14px, 1.8vw, 18px);
+  font-weight: 500;
+  letter-spacing: 0.18em;
+}
+
+.lp-profile-credentials {
+  color: var(--lp-muted);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  margin: 0 0 28px;
+}
+
+.lp-profile-body {
+  display: grid;
+  gap: 20px;
+  margin-bottom: 34px;
+}
+
+.lp-profile-body p {
+  color: var(--lp-ink-mid);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: clamp(14px, 1.8vw, 16px);
+  line-height: 2.1;
+  margin: 0;
+}
+
+.lp-profile-body strong {
+  color: var(--lp-ink);
+}
+
+.lp-profile-cta {
+  display: inline-flex;
+}
+
+/* ─── ④ 施術メニュー（白ベース・清潔なタイル） ─── */
+
+.lp-menu-section {
+  background: var(--lp-white);
+}
+
+.lp-menu-grid {
+  background: var(--lp-line);
+  border: 1px solid var(--lp-line);
+  display: grid;
+  gap: 1px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  margin-bottom: 28px;
+}
+
+.lp-menu-card {
+  background: var(--lp-white);
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: clamp(24px, 3.5vw, 38px);
+  transition: background 0.2s ease;
+}
+
+.lp-menu-card:hover {
+  background: var(--lp-cream);
+  box-shadow: none;
+  transform: none;
+}
+
+.lp-menu-card--featured {
+  background: var(--lp-cream-deep);
+  grid-column: span 2;
+}
+
+.lp-menu-card--featured:hover {
+  background: var(--lp-linen);
+}
+
+.lp-menu-card--featured h3,
+.lp-menu-card--featured .lp-menu-price {
+  color: var(--lp-ink);
+}
+
+.lp-menu-card--featured .lp-menu-desc {
+  color: var(--lp-ink-mid);
+}
+
+.lp-menu-tag {
+  color: var(--lp-gold);
+  display: block;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  margin-bottom: 10px;
+}
+
+.lp-menu-card h3 {
+  color: var(--lp-ink);
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+  font-size: clamp(16px, 2.2vw, 19px);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1.5;
+  margin: 0 0 10px;
+}
+
+.lp-menu-min {
+  color: var(--lp-gold);
+  font-size: 0.84em;
+}
+
+.lp-menu-price {
+  color: var(--lp-ink);
+  display: block;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: clamp(20px, 2.8vw, 26px);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  margin-bottom: 12px;
+}
+
+.lp-menu-price span {
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0;
+  opacity: 0.55;
+}
+
+.lp-menu-desc {
+  color: var(--lp-ink-mid);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 13px;
+  line-height: 1.9;
+  margin: 0;
+}
+
+/* オプション行 */
+.lp-options-row {
+  background: var(--lp-cream);
+  border: 1px solid var(--lp-line);
+  display: grid;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 20px 26px;
+}
+
+.lp-options-label {
+  color: var(--lp-gold);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.lp-options-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.lp-option-item {
+  align-items: center;
+  background: var(--lp-white);
+  border: 1px solid var(--lp-line);
+  display: flex;
+  gap: 10px;
+  padding: 8px 14px;
+}
+
+.lp-option-name {
+  color: var(--lp-ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.lp-option-price {
+  color: var(--lp-gold);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.lp-menu-note {
+  color: var(--lp-ink-muted);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  margin-bottom: 40px;
+  text-align: center;
+}
+
+.lp-menu-cta {
+  text-align: center;
+}
+
+/* ─── ⑤ WEB予約セクション ─── */
+
+.lp-booking-section {
+  background: var(--lp-cream);
+  padding-bottom: 0;
+}
+
+.lp-booking-section > .lp-inner {
+  margin-bottom: 36px;
+}
+
+.lp-booking-layout {
+  padding-left: clamp(18px, 4vw, 24px);
+  padding-right: clamp(18px, 4vw, 24px);
+}
+
+.lp-line-aside {
+  border-top: 1px solid var(--lp-line);
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 20px;
+}
+
+.lp-line-aside p {
+  color: var(--lp-ink-mid);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.lp-line-aside .lp-cta-line {
+  font-size: 13px;
+  min-height: 44px;
+  padding: 10px 20px;
+}
+
+/* ─── ⑥ Instagram & note（白ベース・ミニマル） ─── */
+
+.lp-social-section {
+  background: var(--lp-cream-deep);
+}
+
+.lp-social-grid {
+  background: var(--lp-line);
+  border: 1px solid var(--lp-line);
+  display: grid;
+  gap: 1px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  margin-top: 44px;
+}
+
+.lp-social-card {
+  background: var(--lp-white);
+  border: none;
+  border-radius: 0;
+  display: grid;
+  overflow: hidden;
+  transition: background 0.2s ease;
+}
+
+.lp-social-card:hover {
+  background: var(--lp-cream);
+}
+
+.lp-social-icon {
+  align-items: center;
+  background: var(--lp-cream);
+  border-bottom: 1px solid var(--lp-line-subtle);
+  display: flex;
+  justify-content: center;
+  min-height: 64px;
+}
+
+.lp-social-icon--ig span {
+  color: var(--lp-gold);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  opacity: 0.8;
+}
+
+.lp-social-icon--note span {
+  color: var(--lp-gold);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  opacity: 0.8;
+}
+
+.lp-social-body {
+  display: grid;
+  gap: 12px;
+  padding: clamp(22px, 3.5vw, 30px);
+}
+
+.lp-social-body h3 {
+  color: var(--lp-ink);
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", serif;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+
+.lp-social-handle {
+  color: var(--lp-gold);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin: 0;
+}
+
+.lp-social-body > p:not(.lp-social-handle) {
+  color: var(--lp-ink-mid);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 13px;
+  line-height: 1.9;
+  margin: 0;
+}
+
+.lp-social-body .lp-cta-secondary {
+  font-size: 12px;
+  min-height: 40px;
+  padding: 8px 18px;
+}
+
+/* ─── ⑦ フッター（深いインク色・静謐） ─── */
+
+.lp-footer {
+  background: #1D1917;
+  padding: clamp(52px, 8vw, 96px) 0 0;
+}
+
+.lp-footer-inner {
+  display: grid;
+  gap: clamp(44px, 6vw, 80px);
+  margin: 0 auto;
+  max-width: var(--content);
+  padding: 0 clamp(22px, 5vw, 48px);
+  padding-bottom: clamp(48px, 7vw, 72px);
+}
+
+.lp-footer-logo {
+  display: block;
+  height: auto;
+  margin-bottom: 22px;
+  max-width: 170px;
+  object-fit: contain;
+  opacity: 0.68;
+  width: auto;
+}
+
+.lp-footer-dl {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.lp-footer-dl > div {
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 13px 0;
+}
+
+.lp-footer-dl dt {
+  color: rgba(255, 255, 255, 0.3);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.lp-footer-dl dd {
+  color: rgba(255, 255, 255, 0.68);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 13px;
+  line-height: 1.85;
+  margin: 0;
+}
+
+.lp-footer-dl dd small {
+  color: rgba(255, 255, 255, 0.3);
+  display: block;
+  font-size: 11px;
+  margin-top: 3px;
+}
+
+.lp-footer-nav {
+  align-content: start;
+  display: grid;
+  gap: 10px;
+}
+
+.lp-footer-nav a {
+  color: rgba(255, 255, 255, 0.38);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.lp-footer-nav a:hover {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.lp-footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin: 0 auto;
+  max-width: var(--content);
+  padding: clamp(14px, 2.5vw, 20px) clamp(22px, 5vw, 48px);
+  width: 100%;
+}
+
+.lp-footer-bottom p {
+  color: rgba(255, 255, 255, 0.16);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+/* ─── LP レスポンシブ ─── */
+
+@media (min-width: 860px) {
+  .lp-profile-inner {
+    align-items: start;
+    grid-template-columns: 340px 1fr;
+  }
+
+  .lp-profile-photo {
+    position: sticky;
+    top: 40px;
+  }
+}
+
+@media (min-width: 720px) {
+  .lp-menu-card--featured {
+    grid-column: span 2;
+  }
+
+  .lp-options-row {
+    align-items: center;
+    gap: 20px;
+    grid-template-columns: 100px 1fr;
+  }
+
+  .lp-footer-inner {
+    align-items: start;
+    grid-template-columns: 1fr 200px;
+  }
+}
+
+@media (max-width: 720px) {
+  .lp-pillar-card--wide {
+    gap: 8px;
+    grid-template-columns: 1fr;
+  }
+
+  .lp-pillar-card--wide .lp-pillar-icon--plus {
+    margin-bottom: 10px;
+  }
+
+  .lp-menu-card--featured {
+    grid-column: span 1;
+  }
+
+  .lp-hero-title {
+    font-size: clamp(15px, 4.2vw, 19px);
+    letter-spacing: 0.04em;
+    line-height: 1.65;
+  }
+
+  .lp-section-title {
+    font-size: clamp(20px, 5.6vw, 26px);
+    letter-spacing: 0.04em;
+  }
+
+  .lp-hero-cta {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .lp-hero .lp-cta-primary,
+  .lp-line-btn {
+    font-size: 14px;
+    min-height: 50px;
+    padding: 12px 22px;
+  }
+}
+
+/* ─── 予約専用ページ（reserve.html）ヘッダー・レイアウト ─── */
+
+.reserve-header {
+  background: rgba(255, 254, 251, 0.97);
+  border-bottom: 1px solid var(--line);
+  padding: 14px 22px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.reserve-header-inner {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  margin: 0 auto;
+  max-width: var(--content);
+}
+
+.reserve-back-link {
+  color: var(--muted);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.reserve-back-link:hover {
+  color: var(--purple);
+}
+
+.reserve-logo-link {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+}
+
+.reserve-logo {
+  height: 40px;
+  object-fit: contain;
+  width: auto;
+}
+
+.reserve-header-title {
+  color: var(--gold);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.reserve-hero {
+  background: var(--lp-cream, #fdf9f3);
+  border-bottom: 1px solid var(--line);
+  padding: 40px 22px 36px;
+  text-align: center;
+}
+
+.reserve-hero-eyebrow {
+  color: var(--gold);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+}
+
+.reserve-hero-title {
+  font-size: clamp(22px, 5vw, 32px);
+  margin-bottom: 10px;
+}
+
+.reserve-hero-lead {
+  color: var(--muted);
+  font-size: 15px;
+  margin: 0;
+}
+
+.reserve-footer {
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 13px;
+  margin-top: 40px;
+  padding: 24px 22px;
+  text-align: center;
+}
+
+.reserve-footer a {
+  color: var(--muted);
+}
+
+/* ─── トップページ：施術風景写真ストリップ（5枠） ─── */
+.lp-gallery-strip-section {
+  background: #f8f7f3;
+  border-top: 1px solid var(--lp-line, #e8e4df);
+  border-bottom: 1px solid var(--lp-line, #e8e4df);
+  padding: clamp(48px, 6vw, 72px) 0;
+}
+
+.lp-gallery-strip-header {
+  align-items: flex-end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.lp-gallery-strip-eyebrow {
+  color: var(--lp-gold, #a88434);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  margin: 0 0 6px;
+  text-transform: uppercase;
+}
+
+.lp-gallery-strip-title {
+  color: var(--lp-ink, #231f1d);
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+  font-size: clamp(22px, 3vw, 28px);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  margin: 0 0 6px;
+}
+
+.lp-gallery-strip-lead {
+  color: var(--lp-muted, #7a756e);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 13px;
+  margin: 0;
+}
+
+.lp-gallery-more-link {
+  color: var(--lp-gold, #a88434);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.lp-gallery-more-link:hover {
+  opacity: 0.75;
+}
+
+.lp-gallery-strip-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(5, 1fr);
+  margin-bottom: 28px;
+}
+
+@media (max-width: 900px) {
+  .lp-gallery-strip-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .lp-gallery-strip-grid {
+    display: flex;
+    gap: 12px;
+    margin: 0 -22px 24px;
+    overflow-x: auto;
+    padding: 4px 22px 14px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+.lp-gallery-item {
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  transition: transform 0.25s ease;
+}
+
+.lp-gallery-item:hover {
+  transform: translateY(-3px);
+}
+
+@media (max-width: 600px) {
+  .lp-gallery-item {
+    flex: 0 0 160px;
+    scroll-snap-align: start;
+  }
+}
+
+.lp-gallery-thumb {
+  aspect-ratio: 1 / 1;
+  background: #f0ece6;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.lp-gallery-thumb img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+  width: 100%;
+}
+
+.lp-gallery-item:hover .lp-gallery-thumb img {
+  transform: scale(1.06);
+}
+
+.lp-gallery-tag {
+  background: rgba(25, 20, 18, 0.72);
+  backdrop-filter: blur(4px);
+  border-radius: 3px;
+  bottom: 8px;
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  padding: 3px 8px;
+  position: absolute;
+  right: 8px;
+}
+
+.lp-gallery-label {
+  color: var(--lp-ink-mid, #4a4540);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  margin: 8px 0 0;
+  text-align: center;
+}
+
+.lp-gallery-strip-cta {
+  text-align: center;
+}
+
+/* ─── 施術風景専用ページ（treatment.html） ─── */
+.gallery-page {
+  background: #faf9f6;
+}
+
+.gallery-header {
+  background: #ffffff;
+  border-bottom: 1px solid var(--lp-line, #e8e4df);
+  padding: 24px 22px clamp(40px, 6vw, 64px);
+  text-align: center;
+}
+
+.gallery-nav {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin: 0 auto clamp(32px, 4vw, 48px);
+  max-width: 1080px;
+}
+
+.gallery-nav-actions {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+}
+
+.gallery-back-link {
+  color: var(--lp-ink-mid, #4a4540);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.gallery-back-link:hover {
+  opacity: 0.7;
+}
+
+.gallery-reserve-btn {
+  font-size: 13px !important;
+  min-height: 40px !important;
+  padding: 8px 20px !important;
+}
+
+.gallery-hero-text {
+  margin: 0 auto;
+  max-width: 760px;
+}
+
+.gallery-hero-title {
+  color: var(--lp-ink, #231f1d);
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+  font-size: clamp(24px, 4vw, 36px);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1.45;
+  margin: 0 0 16px;
+}
+
+.gallery-hero-lead {
+  color: var(--lp-muted, #7a756e);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: clamp(14px, 1.8vw, 15px);
+  line-height: 1.9;
+  margin: 0;
+}
+
+.gallery-main {
+  padding: clamp(48px, 7vw, 80px) 0;
+}
+
+.gallery-card {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid var(--lp-line, #e8e4df);
+  border-radius: 14px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
+  display: grid;
+  gap: clamp(32px, 5vw, 56px);
+  grid-template-columns: 1fr;
+  margin-bottom: clamp(36px, 5vw, 60px);
+  overflow: hidden;
+  padding: clamp(24px, 4vw, 44px);
+}
+
+@media (min-width: 860px) {
+  .gallery-card {
+    grid-template-columns: 440px 1fr;
+  }
+
+  .gallery-card--reverse {
+    grid-template-columns: 1fr 440px;
+  }
+
+  .gallery-card--reverse .gallery-card-photos {
+    order: 2;
+  }
+
+  .gallery-card--reverse .gallery-card-content {
+    order: 1;
+  }
+}
+
+.gallery-card-photos {
+  display: grid;
+  gap: 12px;
+}
+
+.gallery-card-photos--dual {
+  grid-template-columns: 1fr 1fr;
+}
+
+.gallery-photo-frame {
+  background: #f0ece6;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.gallery-photo-frame img {
+  display: block;
+  height: 100%;
+  max-height: 480px;
+  object-fit: cover;
+  width: 100%;
+}
+
+.gallery-photo-frame--portrait img {
+  max-height: 520px;
+}
+
+.gallery-photo-tag {
+  background: rgba(25, 20, 18, 0.76);
+  backdrop-filter: blur(4px);
+  border-radius: 3px;
+  bottom: 10px;
+  color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  padding: 4px 10px;
+  position: absolute;
+  right: 10px;
+}
+
+.gallery-card-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.gallery-card-meta {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.gallery-num {
+  color: var(--lp-gold, #a88434);
+  font-family: "Cinzel", "Times New Roman", serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.gallery-badge {
+  background: rgba(168, 132, 52, 0.12);
+  border-radius: 3px;
+  color: var(--lp-gold, #a88434);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  padding: 3px 8px;
+}
+
+.gallery-badge--special {
+  background: rgba(94, 42, 132, 0.12);
+  color: #5e2a84;
+}
+
+.gallery-card-title {
+  color: var(--lp-ink, #231f1d);
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+  font-size: clamp(20px, 2.6vw, 24px);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1.5;
+  margin: 0 0 16px;
+}
+
+.gallery-card-desc {
+  color: var(--lp-ink-mid, #4a4540);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 14px;
+  line-height: 1.95;
+  margin: 0 0 12px;
+}
+
+.gallery-event-note {
+  background: #faf8f5;
+  border-left: 2px solid #5e2a84;
+  color: var(--lp-muted, #7a756e);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 8px 0 0;
+  padding: 8px 12px;
+}
+
+.gallery-cta-section {
+  background: #ffffff;
+  border: 1px solid var(--lp-line, #e8e4df);
+  border-radius: 14px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+  margin-top: clamp(48px, 6vw, 72px);
+  padding: clamp(36px, 5vw, 56px) 24px;
+  text-align: center;
+}
+
+.gallery-cta-inner {
+  margin: 0 auto;
+  max-width: 640px;
+}
+
+.gallery-cta-title {
+  color: var(--lp-ink, #231f1d);
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+  font-size: clamp(22px, 3.2vw, 28px);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
+  margin: 0 0 14px;
+}
+
+.gallery-cta-lead {
+  color: var(--lp-muted, #7a756e);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 14px;
+  line-height: 1.9;
+  margin: 0 0 28px;
+}
+
+.gallery-cta-buttons {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+}
+
+.gallery-back-btn {
+  color: var(--lp-muted, #7a756e);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 18px;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.gallery-back-btn:hover {
+  opacity: 0.75;
+}
+

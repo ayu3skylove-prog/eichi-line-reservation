@@ -1,6 +1,6 @@
 const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
 let config = null;
-let currentMonth = new Date();
+let currentWeekStart = null;
 let selectedDate = "";
 let isReviewing = false;
 
@@ -9,34 +9,26 @@ const description = document.querySelector("#description");
 const notice = document.querySelector("#notice");
 const hours = document.querySelector("#hours");
 const closedDays = document.querySelector("#closedDays");
-const menuSelect = document.querySelector("#menuSelect");
-const menuDetail = document.querySelector("#menuDetail");
+const menuIdInput = document.querySelector("#menuIdInput");
+const menuCardList = document.querySelector("#menuCardList");
 const optionSection = document.querySelector("#optionSection");
 const optionList = document.querySelector("#optionList");
 const dateInput = document.querySelector("#dateInput");
 const timeSelect = document.querySelector("#timeSelect");
+const weekMatrix = document.querySelector("#weekMatrix");
+const weekTitle = document.querySelector("#weekTitle");
+const prevWeekButton = document.querySelector("#prevWeekButton");
+const nextWeekButton = document.querySelector("#nextWeekButton");
 const form = document.querySelector("#bookingForm");
 const formMessage = document.querySelector("#formMessage");
 const confirmationActions = document.querySelector("#confirmationActions");
 const bookingReview = document.querySelector("#bookingReview");
 const reviewButton = document.querySelector("#reviewButton");
 const editBookingButton = document.querySelector("#editBookingButton");
-const calendarTitle = document.querySelector("#calendarTitle");
-const availabilityCalendar = document.querySelector("#availabilityCalendar");
-const selectedDateTitle = document.querySelector("#selectedDateTitle");
-const slotList = document.querySelector("#slotList");
-const prevMonthButton = document.querySelector("#prevMonthButton");
-const nextMonthButton = document.querySelector("#nextMonthButton");
 
 function minutesFromTime(time) {
   const [h, m] = time.split(":").map(Number);
   return h * 60 + m;
-}
-
-function timeFromMinutes(total) {
-  const h = String(Math.floor(total / 60)).padStart(2, "0");
-  const m = String(total % 60).padStart(2, "0");
-  return `${h}:${m}`;
 }
 
 function formatPrice(price) {
@@ -52,12 +44,6 @@ function toDateString(date) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
-}
-
-function toMonthString(date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  return `${year}-${month}`;
 }
 
 function formatDateLabel(dateText) {
@@ -93,7 +79,7 @@ function resetReview() {
 }
 
 function selectedMenu() {
-  return config.menus.find(menu => menu.id === menuSelect.value);
+  return config?.menus.find(menu => menu.id === menuIdInput.value);
 }
 
 function selectedOptionIds() {
@@ -102,7 +88,7 @@ function selectedOptionIds() {
 
 function selectedOptions() {
   const ids = selectedOptionIds();
-  return (config.options || []).filter(option => ids.includes(option.id));
+  return (config?.options || []).filter(option => ids.includes(option.id));
 }
 
 function totalDuration(menu) {
@@ -119,7 +105,7 @@ function optionQuery() {
 }
 
 function renderOptions() {
-  const options = config.options || [];
+  const options = config?.options || [];
   optionList.innerHTML = "";
   optionSection.hidden = !options.length;
 
@@ -129,158 +115,177 @@ function renderOptions() {
     label.innerHTML = `
       <input type="checkbox" name="optionIds" value="${option.id}">
       <span>
-        <strong>${option.name}</strong>
+        <strong>${escapeHtml(option.name)}</strong>
         <small>${option.duration}分 / ${formatPrice(option.price)}</small>
-        <em>${option.description}</em>
+        <em>${escapeHtml(option.description)}</em>
       </span>
     `;
     optionList.append(label);
   }
 }
 
-function renderMenuDetail() {
-  const menu = selectedMenu();
-  if (!menu) return;
-  const options = selectedOptions();
-  menuDetail.innerHTML = `
-    <strong>${menu.name}</strong><br>
-    合計 ${totalDuration(menu)}分 / ${formatPrice(totalPrice(menu))}<br>
-    ${menu.description}
-    ${menu.treatmentSummary ? `<br><br>${menu.treatmentSummary}` : ""}
-    ${options.length ? `<br><br>追加：${options.map(option => option.name).join("、")}` : ""}
-  `;
+function onMenuChange() {
   resetReview();
   updateStep(1);
-  refreshAvailability();
+  renderWeekMatrix();
 }
 
-function renderTimes(slots = []) {
-  const menu = selectedMenu();
-  if (!menu) return;
-
-  timeSelect.innerHTML = "";
-
-  if (!slots.length) {
-    const option = document.createElement("option");
-    option.value = "";
-    option.textContent = "空き時間がありません";
-    timeSelect.append(option);
-    return;
-  }
-
-  for (const time of slots) {
-    const option = document.createElement("option");
-    option.value = time;
-    option.textContent = time;
-    timeSelect.append(option);
-  }
-}
-
-async function loadSlotsForDate(dateText) {
-  const res = await fetch(`/api/availability?date=${dateText}&menuId=${menuSelect.value}${optionQuery()}`);
-  if (!res.ok) return { slots: [], daySlots: [] };
-  return res.json();
-}
-
-async function renderSlots(dateText, preferredTime = "") {
-  selectedDate = dateText;
-  dateInput.value = dateText;
-  selectedDateTitle.textContent = `${formatDateLabel(dateText)}の空き時間`;
-  slotList.innerHTML = "";
-
-  const availability = await loadSlotsForDate(dateText);
-  const slots = availability.slots || [];
-  const daySlots = availability.daySlots?.length
-    ? availability.daySlots
-    : slots.map(time => ({ time, available: true }));
-  renderTimes(slots);
-
-  if (preferredTime && slots.includes(preferredTime)) {
-    timeSelect.value = preferredTime;
-  }
-
-  if (!slots.length) {
-    slotList.innerHTML = '<p class="message">この日は空き時間がありません。</p>';
-    return;
-  }
-
-  for (const slotStatus of daySlots) {
-    const slot = slotStatus.time;
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = [
-      "slot-button",
-      slotStatus.available ? "" : "unavailable",
-      slot === timeSelect.value ? "selected" : ""
-    ].filter(Boolean).join(" ");
-    button.disabled = !slotStatus.available;
-    button.textContent = slotStatus.available ? slot : `${slot} 予約不可`;
-    if (!slotStatus.available) {
-      slotList.append(button);
-      continue;
-    }
-      button.addEventListener("click", () => {
-        timeSelect.value = slot;
-        document.querySelectorAll(".slot-button").forEach(item => item.classList.remove("selected"));
-        button.classList.add("selected");
-        setMessage(`${formatDateLabel(dateText)} ${slot} を選択しました。`, "success");
-        resetReview();
-        updateStep(4);
-      });
-    slotList.append(button);
-  }
-}
-
-async function renderCalendar() {
-  const monthText = toMonthString(currentMonth);
-  const res = await fetch(`/api/availability?month=${monthText}&menuId=${menuSelect.value}${optionQuery()}`);
-  const data = await res.json();
-  const todayText = toDateString(new Date());
-
-  calendarTitle.textContent = `${currentMonth.getFullYear()}年${currentMonth.getMonth() + 1}月`;
-  availabilityCalendar.innerHTML = "";
-
-  for (let i = 0; i < data.firstWeekday; i += 1) {
-    const spacer = document.createElement("div");
-    spacer.className = "calendar-spacer";
-    availabilityCalendar.append(spacer);
-  }
-
-  for (const day of data.days) {
-    const button = document.createElement("button");
-    const date = new Date(`${day.date}T00:00:00`);
-    const isPast = day.date < todayText;
-    const hasSlots = day.slotCount > 0 && !isPast;
-    const isSelected = day.date === selectedDate;
-    button.type = "button";
-    button.className = [
-      "calendar-day",
-      hasSlots ? "available" : "unavailable",
-      day.isClosed ? "closed" : "",
-      isSelected ? "selected" : ""
-    ].filter(Boolean).join(" ");
-    button.disabled = !hasSlots;
-    button.innerHTML = `
-      <span class="day-number">${date.getDate()}</span>
-      <span class="day-status">${day.isClosed ? "休" : hasSlots ? `空き${day.slotCount}` : "満"}</span>
-    `;
-    button.addEventListener("click", async () => {
-      selectedDate = day.date;
-      await renderCalendar();
-      await renderSlots(day.date);
-      resetReview();
-      updateStep(3);
-    });
-    availabilityCalendar.append(button);
-  }
-}
-
-async function refreshAvailability(preferredTime = "") {
+function renderMenuCards() {
+  menuCardList.innerHTML = "";
   if (!config) return;
-  const today = new Date();
-  if (!selectedDate) selectedDate = toDateString(today);
-  await renderCalendar();
-  await renderSlots(selectedDate, preferredTime);
+
+  for (const menu of config.menus) {
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "menu-card" + (menuIdInput.value === menu.id ? " selected" : "");
+    card.dataset.menuId = menu.id;
+
+    const imgHtml = menu.imageUrl
+      ? `<img class="menu-card-img" src="${escapeHtml(menu.imageUrl)}" alt="" loading="lazy">`
+      : "";
+
+    card.innerHTML = `
+      ${imgHtml}
+      <div class="menu-card-body">
+        <div class="menu-card-tagline">${escapeHtml(menu.treatmentSummary || "")}</div>
+        <div class="menu-card-name">${escapeHtml(menu.name)}</div>
+        <div class="menu-card-meta">${menu.duration}分 ／ ${formatPrice(menu.price)}（税込）</div>
+        <div class="menu-card-desc">${escapeHtml(menu.description || "")}</div>
+      </div>
+      <div class="menu-card-check" aria-hidden="true">✓</div>
+    `;
+
+    card.addEventListener("click", () => {
+      menuIdInput.value = menu.id;
+      document.querySelectorAll(".menu-card").forEach(c => c.classList.remove("selected"));
+      card.classList.add("selected");
+      onMenuChange();
+    });
+
+    menuCardList.append(card);
+  }
+}
+
+function getWeekStart(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - d.getDay());
+  return d;
+}
+
+function addDays(date, n) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + n);
+  return d;
+}
+
+async function renderWeekMatrix() {
+  if (!config || !menuIdInput.value) return;
+
+  const todayText = toDateString(new Date());
+  const days = Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i));
+  const dayStrings = days.map(toDateString);
+
+  const first = days[0];
+  const last = days[6];
+  weekTitle.textContent = `${first.getFullYear()}年${first.getMonth() + 1}月${first.getDate()}日 〜 ${last.getMonth() + 1}月${last.getDate()}日`;
+
+  weekMatrix.innerHTML = '<div class="wm-loading">読み込み中…</div>';
+
+  const fetchedDays = await Promise.all(
+    dayStrings.map(async (dateText) => {
+      if (dateText < todayText) return { dateText, slots: [], isPast: true };
+      try {
+        const res = await fetch(`/api/availability?date=${dateText}&menuId=${encodeURIComponent(menuIdInput.value)}${optionQuery()}`);
+        if (!res.ok) return { dateText, slots: [], isPast: false };
+        const data = await res.json();
+        return { dateText, slots: data.daySlots || [], isPast: false };
+      } catch {
+        return { dateText, slots: [], isPast: false };
+      }
+    })
+  );
+
+  const allTimes = [...new Set(fetchedDays.flatMap(d => d.slots.map(s => s.time)))].sort();
+
+  weekMatrix.innerHTML = "";
+
+  if (!allTimes.length) {
+    weekMatrix.innerHTML = '<p class="wm-empty">この週に予約可能な時間枠はありません。</p>';
+    return;
+  }
+
+  weekMatrix.style.gridTemplateColumns = `56px repeat(7, minmax(44px, 1fr))`;
+  weekMatrix.style.gridTemplateRows = `auto repeat(${allTimes.length}, auto)`;
+
+  const corner = document.createElement("div");
+  corner.className = "wm-corner";
+  corner.textContent = "時刻";
+  weekMatrix.append(corner);
+
+  days.forEach((day, i) => {
+    const dateText = toDateString(day);
+    const isToday = dateText === todayText;
+    const dow = day.getDay();
+    const header = document.createElement("div");
+    header.className = [
+      "wm-day-header",
+      dow === 0 ? "wm-sun" : dow === 6 ? "wm-sat" : "",
+      isToday ? "wm-today" : ""
+    ].filter(Boolean).join(" ");
+    header.innerHTML = `<strong>${day.getDate()}</strong><span>${weekdays[dow]}</span>`;
+    weekMatrix.append(header);
+  });
+
+  for (const time of allTimes) {
+    const timeCell = document.createElement("div");
+    timeCell.className = "wm-time";
+    timeCell.textContent = time;
+    weekMatrix.append(timeCell);
+
+    for (let i = 0; i < 7; i++) {
+      const dayData = fetchedDays[i];
+      const slotInfo = dayData.slots.find(s => s.time === time);
+      const cell = document.createElement("div");
+      cell.className = "wm-cell";
+
+      const isSelected = dayData.dateText === selectedDate && time === timeSelect.value;
+
+      if (dayData.isPast || !slotInfo || !slotInfo.available) {
+        const x = document.createElement("span");
+        x.className = "wm-x";
+        x.textContent = "×";
+        cell.append(x);
+      } else {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "wm-circle-btn" + (isSelected ? " selected" : "");
+        btn.textContent = "◯";
+        btn.addEventListener("click", () => {
+          dateInput.value = dayData.dateText;
+          selectedDate = dayData.dateText;
+          timeSelect.innerHTML = "";
+          const opt = document.createElement("option");
+          opt.value = time;
+          opt.textContent = time;
+          timeSelect.appendChild(opt);
+          timeSelect.value = time;
+
+          document.querySelectorAll(".wm-circle-btn").forEach(b => b.classList.remove("selected"));
+          btn.classList.add("selected");
+
+          setMessage(`${formatDateLabel(dayData.dateText)} ${time} を選択しました。`, "success");
+          resetReview();
+          updateStep(3);
+
+          document.querySelector("[data-flow-step='3']")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+        cell.append(btn);
+      }
+
+      weekMatrix.append(cell);
+    }
+  }
 }
 
 function setMessage(text, type = "") {
@@ -335,7 +340,7 @@ function renderBookingReview() {
   const optionText = summary.options.length ? summary.options.map(option => option.name).join("、") : "なし";
   bookingReview.hidden = false;
   bookingReview.innerHTML = `
-    <p class="step-label">Step 5</p>
+    <p class="step-label">Step 4</p>
     <h2>ご予約内容の確認</h2>
     <p class="review-lead">内容をご確認のうえ、よろしければ予約を確定してください。</p>
     <dl class="review-list">
@@ -352,7 +357,7 @@ function renderBookingReview() {
   isReviewing = true;
   reviewButton.textContent = "この内容で予約する";
   editBookingButton.hidden = false;
-  updateStep(5);
+  updateStep(4);
   bookingReview.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -365,41 +370,18 @@ async function loadConfig() {
   hours.textContent = `${config.settings.openTime}〜${config.settings.closeTime}`;
   closedDays.textContent = config.settings.closedWeekdays.map(day => `${weekdays[day]}曜日`).join("、") || "なし";
 
-  menuSelect.innerHTML = "";
-  for (const menu of config.menus) {
-    const option = document.createElement("option");
-    option.value = menu.id;
-    option.textContent = `${menu.name}（${menu.duration}分）`;
-    menuSelect.append(option);
-  }
+  if (config.menus.length) menuIdInput.value = config.menus[0].id;
+  renderMenuCards();
   renderOptions();
 
   const today = new Date();
   dateInput.min = today.toISOString().slice(0, 10);
   selectedDate = toDateString(today);
-  dateInput.value = selectedDate;
-  renderMenuDetail();
+  currentWeekStart = getWeekStart(today);
+  onMenuChange();
 }
 
-menuSelect.addEventListener("change", renderMenuDetail);
-
-optionList.addEventListener("change", renderMenuDetail);
-
-dateInput.addEventListener("change", async () => {
-  selectedDate = dateInput.value;
-  currentMonth = new Date(`${selectedDate}T00:00:00`);
-  resetReview();
-  updateStep(3);
-  await refreshAvailability(timeSelect.value);
-});
-
-timeSelect.addEventListener("change", () => {
-  document.querySelectorAll(".slot-button").forEach(item => {
-    item.classList.toggle("selected", item.textContent === timeSelect.value);
-  });
-  resetReview();
-  updateStep(4);
-});
+optionList.addEventListener("change", onMenuChange);
 
 form.addEventListener("input", event => {
   if (event.target.closest("#bookingReview")) return;
@@ -409,21 +391,36 @@ form.addEventListener("input", event => {
 editBookingButton.addEventListener("click", () => {
   resetReview();
   setMessage("内容を修正できます。修正後にもう一度確認へ進んでください。");
-  updateStep(4);
+  updateStep(3);
 });
 
-prevMonthButton.addEventListener("click", async () => {
-  currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
-  await renderCalendar();
+prevWeekButton.addEventListener("click", async () => {
+  currentWeekStart = addDays(currentWeekStart, -7);
+  await renderWeekMatrix();
 });
 
-nextMonthButton.addEventListener("click", async () => {
-  currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
-  await renderCalendar();
+nextWeekButton.addEventListener("click", async () => {
+  currentWeekStart = addDays(currentWeekStart, 7);
+  await renderWeekMatrix();
 });
 
 form.addEventListener("submit", async event => {
   event.preventDefault();
+
+  if (!menuIdInput.value) {
+    setMessage("メニューを選択してください。", "error");
+    return;
+  }
+
+  if (!selectedDate || !dateInput.value) {
+    setMessage("日時を選んでください。", "error");
+    return;
+  }
+
+  if (!timeSelect.value) {
+    setMessage("日時を選んでください。", "error");
+    return;
+  }
 
   if (!form.reportValidity()) return;
 
@@ -463,7 +460,7 @@ form.addEventListener("submit", async event => {
   const data = await res.json();
   setMessage(`${data.booking.date} ${data.booking.time} で予約を受け付けました。ご来院を心よりお待ちしています。`, "success");
   bookingReview.innerHTML = `
-    <p class="step-label">Step 6</p>
+    <p class="step-label">Step 5</p>
     <h2>予約を受け付けました</h2>
     <p class="review-lead">${escapeHtml(formatDateLabel(data.booking.date))} ${escapeHtml(data.booking.time)} にて承りました。変更が必要な場合は、直接お問い合わせください。</p>
   `;
@@ -473,11 +470,13 @@ form.addEventListener("submit", async event => {
   isReviewing = false;
   reviewButton.textContent = "予約内容を確認する";
   editBookingButton.hidden = true;
-  updateStep(6);
+  updateStep(5);
   bookingReview.scrollIntoView({ behavior: "smooth", block: "start" });
   selectedDate = toDateString(new Date());
-  dateInput.value = selectedDate;
-  await refreshAvailability();
+  currentWeekStart = getWeekStart(new Date());
+  if (config.menus.length) menuIdInput.value = config.menus[0].id;
+  renderMenuCards();
+  await renderWeekMatrix();
 });
 
 loadConfig().catch(() => {

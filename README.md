@@ -32,7 +32,7 @@ GitHubで管理する場合の推奨リポジトリ名は `eichi-line-reservatio
 ## 起動方法
 
 ```zsh
-cd /Users/aran/Documents/Codex/2026-07-31/z/work/reservation-system
+cd /Users/aran/Documents/Codex/2026-07-31/z/work/eichi-line-reservation
 npm start
 ```
 
@@ -90,6 +90,23 @@ PORT=3010 npm start
 5. 管理者は `/admin.html` で予約・ブロック・キャンセルを管理する
 
 詳しい公開前チェックは `docs/LINE_RELEASE_CHECKLIST.md` を確認します。
+
+## Renderで公開する場合
+
+Renderでは以下の値で Web Service を作ります。
+
+- Root Directory: `eichi-line-reservation-upload`
+- Runtime: `Node`
+- Build Command: `npm install`
+- Start Command: `npm start`
+- Environment Variable: `ADMIN_PASSWORD` に強い管理パスワードを入れる
+- Environment Variable: `DB_PATH` に `/var/data/db.json` を入れる
+- Disk Mount Path: `/var/data`
+
+GitHubのリポジトリ直下にファイルを置けた場合は、Root Directoryは空欄で大丈夫です。
+
+患者さんに渡す予約URLは、Renderで発行される `https://...onrender.com/` です。
+管理画面は `https://...onrender.com/admin.html` です。
 
 ## GitHubに上げないもの
 

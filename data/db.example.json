@@ -14,7 +14,11 @@
     "notice": "当日は動きやすい服装でお越しください。",
     "adminEmail": "",
     "contactEmail": "",
-    "contactPhone": ""
+    "contactPhone": "",
+    "googleCalendarIcalUrl": "",
+    "gmailUser": "",
+    "gmailAppPassword": "",
+    "notifyEmail": ""
   },
   "auth": {
     "adminPassword": "change-me-before-public",
@@ -22,34 +26,125 @@
   },
   "menus": [
     {
-      "id": "hari-basic",
-      "name": "鍼灸施術",
-      "duration": 60,
-      "price": 16000,
-      "description": "身体の状態を見ながら、鍼を中心に整えていく基本の施術です。",
-      "treatmentSummary": "脈・お腹・姿勢・動きなどを見ながら、身体の流れを整えます。"
-    },
-    {
-      "id": "body-session",
-      "name": "身体を整えるセッション",
+      "id": "junki-90",
+      "name": "巡氣調律治療 90分",
       "duration": 90,
       "price": 24000,
-      "description": "身体・感覚・日常の流れを丁寧に見つめるセッションです。",
-      "treatmentSummary": "身体の状態と日常の癖を一緒に見つめ、本来の感覚に還る土台を整えます。"
+      "imageUrl": "https://d1jq1od39tjqi2.cloudfront.net/upload/salon/salon_menu_img_1779102739780.gif",
+      "description": "じっくりと向き合う90分コース。身体・氣・見えない流れへ、深く丁寧にアプローチします。",
+      "treatmentSummary": "身体・氣・見えない流れを整える"
+    },
+    {
+      "id": "junki-60",
+      "name": "巡氣調律治療 60分",
+      "duration": 60,
+      "price": 16000,
+      "imageUrl": "https://d1jq1od39tjqi2.cloudfront.net/upload/salon/salon_menu_img_1779102830258.jpg",
+      "description": "当院のスタンダード治療コースです。初めての方にも、定期的なメンテナンスにもおすすめ。",
+      "treatmentSummary": "深部の滞りへアプローチ"
+    },
+    {
+      "id": "junki-30",
+      "name": "巡氣調律治療 30分",
+      "duration": 30,
+      "price": 8800,
+      "imageUrl": "https://d1jq1od39tjqi2.cloudfront.net/upload/salon/salon_menu_img_1779102917279.jpg",
+      "description": "短時間でも深部の滞りへしっかりアプローチする部分集中コース。首・肩・腰などつらい場所を中心に。",
+      "treatmentSummary": "部分的な不調・定期メンテナンスに"
+    },
+    {
+      "id": "bijutsushin",
+      "name": "巡氣調律美容鍼",
+      "duration": 50,
+      "price": 12000,
+      "imageUrl": "https://d1jq1od39tjqi2.cloudfront.net/upload/salon/salon_menu_img_1734564285493.jpeg",
+      "description": "【巡氣美容鍼】顔に蓄積したコリや滞り、感情の緊張へ。本来の表情を取り戻すための美容鍼です。",
+      "treatmentSummary": "顔・氣の流れを整える美容鍼"
+    },
+    {
+      "id": "gakusei",
+      "name": "鍼灸学生応援メニュー えいち鍼灸治療",
+      "duration": 30,
+      "price": 5000,
+      "imageUrl": "https://d1jq1od39tjqi2.cloudfront.net/upload/salon/salon_menu_img_1775089332988.jpeg",
+      "description": "鍼灸学生の方を対象とした特別メニュー。実際の臨床に近い感覚を体験しながら学べる機会としてご用意。",
+      "treatmentSummary": "鍼灸学生限定の特別メニュー"
     }
   ],
   "options": [
     {
-      "id": "extra-care",
-      "name": "重点ケア追加",
+      "id": "cupping",
+      "name": "吸い玉（カッピング）",
       "duration": 20,
-      "price": 3100,
-      "description": "気になる部位をもう少し丁寧に見てほしい方向けの追加オプションです。",
+      "price": 2000,
+      "description": "血行促進と疲労回復に効果的な「吸い玉」オプションです。",
+      "treatmentSummary": ""
+    },
+    {
+      "id": "hakogyu",
+      "name": "箱灸・めがね灸",
+      "duration": 15,
+      "price": 1500,
+      "description": "体を芯から温める「箱灸」「めがね灸」です。リラックスや血行促進に。",
+      "treatmentSummary": ""
+    },
+    {
+      "id": "saikyu",
+      "name": "臍灸（塩灸・竹籠温灸）",
+      "duration": 10,
+      "price": 500,
+      "description": "生命の入り口・おへそをあたためる、特別な浄化のお灸。深部まで届く熱で内臓の冷えをほぐします。",
       "treatmentSummary": ""
     }
   ],
   "notifications": [],
   "passwordResetRequests": [],
-  "bookings": []
+  "bookings": [],
+  "gallery": [
+    {
+      "id": "slot-1",
+      "category": "route_back",
+      "tag": "首肩・背中",
+      "label": "ルート治療",
+      "image": "/images/gallery/01_route_back.jpg",
+      "title": "深部のコリを捉える「首肩・背中のルート治療」",
+      "desc": "何年も蓄積してきた頑固な首こり・肩甲骨周りの重だるさ、背中の張り。当院では筋肉の奥深くに潜む「コリのルート（滞りの連鎖）」を丁寧に見極め、的確に鍼を刺入していきます。"
+    },
+    {
+      "id": "slot-2",
+      "category": "dialogue",
+      "tag": "安心の対話",
+      "label": "和やかな時間",
+      "image": "/images/gallery/02_dialogue.jpg",
+      "title": "緊張をほどく、温かな対話と笑顔",
+      "desc": "「鍼が初めてで怖い」「痛かったらどうしよう」という不安を抱えて来られる方も少なくありません。当院では、お一人おひとりの表情や呼吸を感じ取りながら、リラックスしていただける対話を大切にしています。"
+    },
+    {
+      "id": "slot-3",
+      "category": "head",
+      "tag": "脳疲労・自律神経",
+      "label": "頭部刺鍼",
+      "image": "/images/gallery/03_head_acupuncture.jpg",
+      "title": "思考のオーバーヒートを鎮める「頭部ルート治療」",
+      "desc": "パソコン作業やスマートフォンの使いすぎ、考えすぎによる脳疲労・不眠・眼精疲労に。頭皮に張り巡らされたコリを捉え、氣の滞りを解きほぐします。"
+    },
+    {
+      "id": "slot-4",
+      "category": "beauty",
+      "tag": "お顔・デコルテ",
+      "label": "巡氣調律美容鍼",
+      "image": "/images/gallery/04_beauty_acupuncture.jpg",
+      "title": "内側から本来の表情を取り戻す「巡氣調律美容鍼」",
+      "desc": "顔だけに鍼をする一般的な美容鍼とは異なり、首・鎖骨・デコルテから頭皮まで、お顔の巡りを支える全体の筋膜と経絡を調律します。"
+    },
+    {
+      "id": "slot-5",
+      "category": "event",
+      "tag": "特別イベント",
+      "label": "倍音調律セッション",
+      "image": "/images/gallery/05_singing_bowl_event.jpg",
+      "title": "倍音の波動に包まれる「シンギングボウル調律イベント」",
+      "desc": "当院では定期的に、少人数限定の特別なグループ調律イベントやリトリートを開催しています。金属ボウルから生まれる豊かな倍音の響きに身を委ね、細胞と水分を微細に振動させながら深い瞑想へ導きます。"
+    }
+  ]
 }
-

@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>WEB予約 | 美身堂えいち鍼灸院</title>
+    <meta name="description" content="美身堂えいち鍼灸院のWEB予約ページ。メニューを選んでオレンジの◯をタップするだけで予約完了。愛媛・松山、完全予約制。">
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body class="public-page">
+
+    <!-- app.js 互換要素（非表示） -->
+    <h1 id="clinicName" class="sr-only"></h1>
+    <p id="description" class="sr-only"></p>
+
+    <header class="reserve-header">
+      <div class="reserve-header-inner">
+        <a href="/" class="reserve-back-link">← 公式ホームページへ戻る</a>
+        <a href="/" class="reserve-logo-link" aria-label="美身堂えいち鍼灸院 トップへ">
+          <img src="/images/logo.png" alt="美身堂えいち鍼灸院" class="reserve-logo">
+        </a>
+        <span class="reserve-header-title">WEB予約</span>
+      </div>
+    </header>
+
+    <div class="reserve-hero">
+      <p class="reserve-hero-eyebrow">ONLINE RESERVATION</p>
+      <h2 class="reserve-hero-title">WEB予約カレンダー</h2>
+      <p class="reserve-hero-lead">メニューを選んで、オレンジ ◯ をタップするだけで予約完了。</p>
+    </div>
+
+    <div class="layout lp-booking-layout">
+      <section class="panel reservation-panel">
+        <ol class="stepper" aria-label="予約の流れ">
+          <li class="active" data-step-indicator="1"><span>1</span>メニュー</li>
+          <li data-step-indicator="2"><span>2</span>日時</li>
+          <li data-step-indicator="3"><span>3</span>お客様情報</li>
+          <li data-step-indicator="4"><span>4</span>確認</li>
+          <li data-step-indicator="5"><span>5</span>完了</li>
+        </ol>
+
+        <form id="bookingForm" class="form reservation-form">
+          <section class="flow-card" data-flow-step="1">
+            <p class="step-label">Step 1</p>
+            <h2>メニュー選択</h2>
+            <div id="menuCardList" class="menu-card-list" role="group" aria-label="施術メニュー"></div>
+            <input type="hidden" name="menuId" id="menuIdInput">
+
+            <div id="optionSection" class="option-section">
+              <h3>オプション</h3>
+              <div id="optionList" class="option-list"></div>
+            </div>
+          </section>
+
+          <section class="flow-card" data-flow-step="2">
+            <p class="step-label">Step 2</p>
+            <div class="section-heading">
+              <div>
+                <h2>日時選択</h2>
+                <p>オレンジの ◯ をタップすると、日時が一発で確定します。</p>
+              </div>
+              <div class="calendar-controls">
+                <button id="prevWeekButton" class="secondary-button" type="button">＜ 前の週</button>
+                <strong id="weekTitle"></strong>
+                <button id="nextWeekButton" class="secondary-button" type="button">次の週 ＞</button>
+              </div>
+            </div>
+            <div class="week-matrix-wrap">
+              <div id="weekMatrix" class="week-matrix"></div>
+            </div>
+            <input name="date" id="dateInput" type="date" style="display:none">
+            <select name="time" id="timeSelect" style="display:none"></select>
+          </section>
+
+          <section class="flow-card" data-flow-step="3">
+            <p class="step-label">Step 3</p>
+            <h3>お客様情報</h3>
+            <label>
+              お名前
+              <input name="name" autocomplete="name" required>
+            </label>
+            <label>
+              ふりがな
+              <input name="kana">
+            </label>
+            <label>
+              電話番号
+              <input name="phone" autocomplete="tel" required>
+            </label>
+            <label>
+              メールアドレス
+              <input name="email" type="email" autocomplete="email">
+            </label>
+            <label>
+              相談内容・気になること
+              <textarea name="note" rows="5" placeholder="例：肩こり、腰痛、身体の重さ、眠りの浅さなど"></textarea>
+            </label>
+            <label class="consent-check">
+              <input name="privacyConsent" type="checkbox" required>
+              <span><a href="/privacy.html" target="_blank" rel="noopener">個人情報の取り扱い</a>に同意します</span>
+            </label>
+          </section>
+
+          <section id="bookingReview" class="flow-card booking-review" data-flow-step="4" hidden></section>
+
+          <div class="booking-actions">
+            <button id="reviewButton" type="submit">予約内容を確認する</button>
+            <button id="editBookingButton" class="secondary-button" type="button" hidden>内容を修正する</button>
+          </div>
+          <p id="formMessage" class="message" role="status"></p>
+          <div id="confirmationActions" class="confirmation-actions" hidden></div>
+        </form>
+      </section>
+
+      <aside class="panel subtle guidance-panel">
+        <h2>ご案内</h2>
+        <p id="notice"></p>
+        <dl class="info-list">
+          <div>
+            <dt>受付時間</dt>
+            <dd id="hours"></dd>
+          </div>
+          <div>
+            <dt>定休日</dt>
+            <dd id="closedDays"></dd>
+          </div>
+        </dl>
+        <div class="lp-line-aside" id="line-contact">
+          <p>ご不明点はLINEでお気軽にご相談ください。</p>
+          <!-- LINE公式アカウントURL → 管理者が更新してください -->
+          <a class="lp-cta-line" href="#" target="_blank" rel="noopener">公式LINEで相談する</a>
+        </div>
+        <p class="aside-link"><a href="/privacy.html">個人情報の取り扱い</a></p>
+        <p class="aside-link"><a href="/">← 公式ホームページへ</a></p>
+      </aside>
+    </div>
+
+    <footer class="reserve-footer">
+      <p>&copy; 2024 美身堂えいち鍼灸院 &nbsp;|&nbsp; <a href="/privacy.html">個人情報の取り扱い</a> &nbsp;|&nbsp; <a href="/admin.html">管理画面</a></p>
+    </footer>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

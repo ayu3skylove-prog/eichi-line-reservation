@@ -18,12 +18,21 @@
 
     <main class="admin-layout">
       <section class="toolbar">
-        <button id="refreshButton" type="button">更新</button>
-        <a class="button-link" href="/api/bookings.csv">CSV出力</a>
-        <button id="logoutButton" class="secondary-button" type="button">ログアウト</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <button id="refreshButton" type="button">更新</button>
+          <a class="button-link" href="/api/bookings.csv">CSV出力</a>
+          <button id="logoutButton" class="secondary-button" type="button">ログアウト</button>
+        </div>
+        <div class="admin-quick-nav" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--border,#e8e4df);width:100%;">
+          <a class="secondary-button" href="#calendarSection" style="text-decoration:none;font-size:13px;padding:6px 14px;">📅 カレンダー</a>
+          <a class="secondary-button" href="#gallerySection" style="text-decoration:none;font-size:13px;padding:6px 14px;background:#8a6d3b;color:#ffffff;border-color:#8a6d3b;font-weight:600;">📸 施術写真・差し替え設定</a>
+          <a class="secondary-button" href="#gmailSection" style="text-decoration:none;font-size:13px;padding:6px 14px;background:#5e2a84;color:#ffffff;border-color:#5e2a84;font-weight:600;">✉️ Gmail自動送信設定</a>
+          <a class="secondary-button" href="#settingsSection" style="text-decoration:none;font-size:13px;padding:6px 14px;">⚙️ 予約・Googleカレンダー設定</a>
+          <a class="secondary-button" href="#bookingsTableSection" style="text-decoration:none;font-size:13px;padding:6px 14px;">📋 予約一覧</a>
+        </div>
       </section>
 
-      <section class="panel schedule-panel">
+      <section id="calendarSection" class="panel schedule-panel">
         <div class="calendar-toolbar">
           <div>
             <p class="eyebrow">Dashboard</p>
@@ -114,30 +123,52 @@
         </form>
       </dialog>
 
-      <section class="panel security-panel">
-        <h2>管理パスワード変更</h2>
-        <form id="passwordForm" class="form">
+      <section id="gmailSection" class="panel settings-panel gmail-panel" style="border: 2px solid #5e2a84;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="background:#5e2a84;color:#fff;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:700;">設定</span>
+          <h2 style="margin:0;">Gmail自動送信設定</h2>
+        </div>
+        <p class="lead" style="margin-top:8px;">予約完了時に患者さんと院長宛てへ確認メールを自動送信します。GmailのSMTPを使用します。</p>
+        <form id="gmailForm" class="form">
           <div class="two-col">
             <label>
-              現在のパスワード
-              <input name="currentPassword" type="password" autocomplete="current-password" required>
+              Gmailアドレス（送信元）
+              <input id="gmailUserInput" name="gmailUser" type="email" placeholder="example@gmail.com">
             </label>
             <label>
-              新しいパスワード
-              <input name="newPassword" type="password" autocomplete="new-password" minlength="8" required>
+              Gmailアプリパスワード（16桁）
+              <input id="gmailAppPasswordInput" name="gmailAppPassword" type="password" placeholder="xxxx xxxx xxxx xxxx" autocomplete="off">
+              <small style="color:var(--muted);font-size:12px;font-weight:400;">Googleアカウント →「2段階認証」→「アプリパスワード」で16桁を発行してください。</small>
             </label>
           </div>
           <label>
-            新しいパスワードをもう一度
-            <input name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required>
+            院長通知先メール（未設定時はGmailアドレスに届きます）
+            <input id="notifyEmailInput" name="notifyEmail" type="email" placeholder="owner@example.com">
           </label>
-          <button type="submit">パスワードを変更</button>
-          <p id="passwordMessage" class="message" role="status"></p>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <button type="submit">Gmail設定を保存</button>
+            <button id="gmailTestButton" class="secondary-button" type="button">テスト送信</button>
+          </div>
+          <p id="gmailMessage" class="message" role="status"></p>
         </form>
       </section>
 
-      <section class="panel settings-panel">
-        <h2>予約ページ設定</h2>
+      <section id="gallerySection" class="panel settings-panel gallery-admin-panel" style="border: 2px solid #8a6d3b;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="background:#8a6d3b;color:#fff;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:700;">写真管理</span>
+          <h2 style="margin:0;">施術写真・臨床ギャラリー差し替え</h2>
+        </div>
+        <p class="lead" style="margin-top:8px;">
+          トップページの「実際の施術風景（5枠）」や、施術ご紹介ページ（/treatment.html）に表示される写真を、いつでもスマホやPCから直接選んで差し替えられます。
+        </p>
+        <div id="galleryAdminGrid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:20px;margin-top:20px;">
+          <!-- JSで自動描画 -->
+        </div>
+        <p id="galleryAdminGlobalMessage" class="message" role="status" style="margin-top:16px;"></p>
+      </section>
+
+      <section id="settingsSection" class="panel settings-panel">
+        <h2>予約ページ・Googleカレンダー設定</h2>
         <form id="settingsForm" class="form">
           <div class="two-col">
             <label>
@@ -240,6 +271,12 @@
             </label>
           </div>
 
+          <label>
+            Googleカレンダー iCal URL（非公開のiCal URL）
+            <input name="googleCalendarIcalUrl" type="url" placeholder="https://calendar.google.com/calendar/ical/...">
+            <small style="color:var(--muted);font-size:12px;font-weight:400;">GoogleカレンダーのURLを登録すると、予定がある時間帯が自動で予約不可（×）になります。設定後は「設定を保存」してください。</small>
+          </label>
+
           <div>
             <h3>基本メニュー・料金</h3>
             <div id="menuEditor" class="item-editor"></div>
@@ -257,7 +294,7 @@
         </form>
       </section>
 
-      <section class="panel">
+      <section id="bookingsTableSection" class="panel">
         <h2>予約一覧</h2>
         <div class="table-wrap">
           <table>
@@ -276,6 +313,28 @@
           </table>
         </div>
         <p id="emptyMessage" class="message"></p>
+      </section>
+
+      <section id="passwordSection" class="panel security-panel">
+        <h2>管理パスワード変更</h2>
+        <form id="passwordForm" class="form">
+          <div class="two-col">
+            <label>
+              現在のパスワード
+              <input name="currentPassword" type="password" autocomplete="current-password" required>
+            </label>
+            <label>
+              新しいパスワード
+              <input name="newPassword" type="password" autocomplete="new-password" minlength="8" required>
+            </label>
+          </div>
+          <label>
+            新しいパスワードをもう一度
+            <input name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required>
+          </label>
+          <button type="submit">パスワードを変更</button>
+          <p id="passwordMessage" class="message" role="status"></p>
+        </form>
       </section>
 
       <section class="panel notification-panel">

@@ -1,4 +1,6 @@
 const http = require("http");
+const https = require("https");
+const tls = require("tls");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
@@ -9,13 +11,19 @@ const ROOT = __dirname;
 const PUBLIC_DIR = path.join(ROOT, "public");
 const DB_PATH = process.env.DB_PATH || path.join(ROOT, "data", "db.json");
 const DB_EXAMPLE_PATH = path.join(ROOT, "data", "db.example.json");
+const UPLOAD_DIR = process.env.UPLOAD_DIR || (process.env.DB_PATH ? path.join(path.dirname(process.env.DB_PATH), "uploads") : path.join(PUBLIC_DIR, "images", "gallery"));
 
 const contentTypes = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
   ".json": "application/json; charset=utf-8",
-  ".svg": "image/svg+xml"
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".gif": "image/gif",
+  ".webp": "image/webp"
 };
 
 function readDb() {
@@ -102,7 +110,7 @@ function readBody(req) {
     let body = "";
     req.on("data", chunk => {
       body += chunk;
-      if (body.length > 1_000_000) req.destroy();
+      if (body.length > 20_000_000) req.destroy();
     });
     req.on("end", () => {
       try {
@@ -114,6 +122,61 @@ function readBody(req) {
   });
 }
 
+const DEFAULT_GALLERY = [
+  {
+    id: "slot-1",
+    category: "route_back",
+    tag: "首肩・背中",
+    label: "ルート治療",
+    image: "/images/gallery/01_route_back.jpg",
+    title: "深部のコリを捉える「首肩・背中のルート治療」",
+    desc: "何年も蓄積してきた頑固な首こり・肩甲骨周りの重だるさ、背中の張り。当院では筋肉の奥深くに潜む「コリのルート（滞りの連鎖）」を丁寧に見極め、的確に鍼を刺入していきます。"
+  },
+  {
+    id: "slot-2",
+    category: "dialogue",
+    tag: "安心の対話",
+    label: "和やかな時間",
+    image: "/images/gallery/02_dialogue.jpg",
+    title: "緊張をほどく、温かな対話と笑顔",
+    desc: "「鍼が初めてで怖い」「痛かったらどうしよう」という不安を抱えて来られる方も少なくありません。当院では、お一人おひとりの表情や呼吸を感じ取りながら、リラックスしていただける対話を大切にしています。"
+  },
+  {
+    id: "slot-3",
+    category: "head",
+    tag: "脳疲労・自律神経",
+    label: "頭部刺鍼",
+    image: "/images/gallery/03_head_acupuncture.jpg",
+    title: "思考のオーバーヒートを鎮める「頭部ルート治療」",
+    desc: "パソコン作業やスマートフォンの使いすぎ、考えすぎによる脳疲労・不眠・眼精疲労に。頭皮に張り巡らされたコリを捉え、氣の滞りを解きほぐします。"
+  },
+  {
+    id: "slot-4",
+    category: "beauty",
+    tag: "お顔・デコルテ",
+    label: "巡氣調律美容鍼",
+    image: "/images/gallery/04_beauty_acupuncture.jpg",
+    title: "内側から本来の表情を取り戻す「巡氣調律美容鍼」",
+    desc: "顔だけに鍼をする一般的な美容鍼とは異なり、首・鎖骨・デコルテから頭皮まで、お顔の巡りを支える全体の筋膜と経絡を調律します。"
+  },
+  {
+    id: "slot-5",
+    category: "event",
+    tag: "特別イベント",
+    label: "倍音調律セッション",
+    image: "/images/gallery/05_singing_bowl_event.jpg",
+    title: "倍音の波動に包まれる「シンギングボウル調律イベント」",
+    desc: "当院では定期的に、少人数限定の特別なグループ調律イベントやリトリートを開催しています。金属ボウルから生まれる豊かな倍音の響きに身を委ね、細胞と水分を微細に振動させながら深い瞑想へ導きます。"
+  }
+];
+
+function getGallery(db) {
+  if (Array.isArray(db.gallery) && db.gallery.length) {
+    return db.gallery;
+  }
+  return DEFAULT_GALLERY;
+}
+
 function minutesFromTime(time) {
   const [hours, minutes] = time.split(":").map(Number);
   return hours * 60 + minutes;
@@ -122,6 +185,338 @@ function minutesFromTime(time) {
 function overlaps(aStart, aEnd, bStart, bEnd) {
   return aStart < bEnd && bStart < aEnd;
 }
+
+// ─── Gmail SMTP 連携 ─────────────────────────────────────
+
+function formatJaDate(dateText) {
+  const d = new Date(`${dateText}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return dateText;
+  const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+  return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日（${weekdays[d.getDay()]}）`;
+}
+
+function sendGmailSmtp({ user, password, to, subject, body }) {
+  return new Promise((resolve, reject) => {
+    const socket = tls.connect(465, "smtp.gmail.com", { servername: "smtp.gmail.com" });
+    let buf = "";
+    let step = 0;
+
+    const write = (text) => socket.write(text + "\r\n");
+
+    function onLine(line) {
+      const code = parseInt(line.slice(0, 3), 10);
+      if (step === 0) {
+        step = 1;
+        write("EHLO localhost");
+      } else if (step === 1 && code === 250) {
+        step = 2;
+        write("AUTH LOGIN");
+      } else if (step === 2) {
+        step = 3;
+        write(Buffer.from(user).toString("base64"));
+      } else if (step === 3) {
+        step = 4;
+        write(Buffer.from(password).toString("base64"));
+      } else if (step === 4) {
+        if (code !== 235) { socket.destroy(); return reject(new Error(`Gmail auth failed: ${line}`)); }
+        step = 5;
+        write(`MAIL FROM:<${user}>`);
+      } else if (step === 5) {
+        if (code !== 250) { socket.destroy(); return reject(new Error(`MAIL FROM failed: ${line}`)); }
+        step = 6;
+        write(`RCPT TO:<${to}>`);
+      } else if (step === 6) {
+        if (code !== 250) { socket.destroy(); return reject(new Error(`RCPT TO failed: ${line}`)); }
+        step = 7;
+        write("DATA");
+      } else if (step === 7) {
+        if (code !== 354) { socket.destroy(); return reject(new Error(`DATA rejected: ${line}`)); }
+        step = 8;
+        const encSubject = `=?UTF-8?B?${Buffer.from(subject).toString("base64")}?=`;
+        const raw = Buffer.from(body).toString("base64");
+        const b64Body = (raw.match(/.{1,76}/g) || [""]).join("\r\n");
+        write([
+          `From: ${user}`,
+          `To: ${to}`,
+          `Subject: ${encSubject}`,
+          "MIME-Version: 1.0",
+          "Content-Type: text/plain; charset=UTF-8",
+          "Content-Transfer-Encoding: base64",
+          "",
+          b64Body,
+          "."
+        ].join("\r\n"));
+      } else if (step === 8) {
+        if (code !== 250) { socket.destroy(); return reject(new Error(`Message rejected: ${line}`)); }
+        step = 9;
+        write("QUIT");
+      } else if (step === 9) {
+        socket.destroy();
+        resolve({ ok: true });
+      }
+    }
+
+    socket.setEncoding("utf8");
+    socket.setTimeout(20000);
+    socket.on("timeout", () => { socket.destroy(); reject(new Error("SMTP timeout")); });
+    socket.on("error", reject);
+    socket.on("data", (chunk) => {
+      buf += chunk;
+      while (true) {
+        const idx = buf.indexOf("\r\n");
+        if (idx === -1) break;
+        const line = buf.slice(0, idx);
+        buf = buf.slice(idx + 2);
+        if (line.length >= 4 && line[3] === "-") continue;
+        onLine(line);
+      }
+    });
+  });
+}
+
+function buildPatientEmailBody(db, booking) {
+  const { menu, options, duration, price } = bookingDetails(db, booking);
+  const lines = [
+    `${booking.name} 様`,
+    "",
+    "この度はご予約いただきありがとうございます。",
+    "以下の内容でご予約を承りました。",
+    "",
+    "━━━━━━━━━━━━━━━━━━━━━",
+    "■ ご予約内容",
+    "━━━━━━━━━━━━━━━━━━━━━",
+    `ご予約日時　：${formatJaDate(booking.date)} ${booking.time}〜`,
+    `メニュー　　：${menu ? menu.name : booking.menuId}（${menu ? menu.duration : 0}分）　${(menu ? menu.price : 0).toLocaleString()}円`
+  ];
+  if (options.length) {
+    lines.push("オプション　：");
+    for (const opt of options) {
+      lines.push(`  ・${opt.name}（+${opt.duration}分）　+${opt.price.toLocaleString()}円`);
+    }
+  }
+  lines.push(
+    `合計時間　　：${duration}分`,
+    `合計金額　　：${price.toLocaleString()}円`,
+    "",
+    "━━━━━━━━━━━━━━━━━━━━━",
+    "■ お支払いのご案内",
+    "━━━━━━━━━━━━━━━━━━━━━",
+    "※ 施術当日、受付にて現金にてお願い申し上げます。",
+    "",
+    "━━━━━━━━━━━━━━━━━━━━━",
+    "■ サロン情報",
+    "━━━━━━━━━━━━━━━━━━━━━",
+    db.settings.clinicName,
+    "愛媛県松山市",
+    "院長：松岡あゆみ",
+    db.settings.contactPhone ? `TEL：${db.settings.contactPhone}` : "",
+    "",
+    "━━━━━━━━━━━━━━━━━━━━━",
+    "■ キャンセル・変更のご案内",
+    "━━━━━━━━━━━━━━━━━━━━━",
+    "ご予約のキャンセルや日時変更は、",
+    "公式LINEまたはお電話にてご連絡ください。",
+    "",
+    "━━━━━━━━━━━━━━━━━━━━━",
+    "このメールは自動送信です。",
+    "ご返信いただいても対応できない場合がございます。",
+    "ご不明な点はLINEまたはお電話でお問い合わせください。"
+  );
+  return lines.filter(l => l !== undefined).join("\n");
+}
+
+function buildClinicEmailBody(db, booking) {
+  const { menu, options } = bookingDetails(db, booking);
+  const optionText = options.length ? options.map(opt => opt.name).join("、") : "なし";
+  const lines = [
+    "新規予約が入りました。",
+    "",
+    "━━━━━━━━━━━━━━━━━━━━━",
+    `患者名　　　　：${booking.name}${booking.kana ? `（${booking.kana}）` : ""}`,
+    `電話番号　　　：${booking.phone}`,
+    `メールアドレス：${booking.email || "未入力"}`,
+    `ご希望日時　　：${formatJaDate(booking.date)} ${booking.time}`,
+    `メニュー　　　：${menu ? menu.name : booking.menuId}`,
+    `オプション　　：${optionText}`
+  ];
+  if (booking.note) lines.push(`相談内容　　　：${booking.note}`);
+  lines.push(
+    "━━━━━━━━━━━━━━━━━━━━━",
+    "",
+    "予約管理画面でご確認ください。"
+  );
+  return lines.join("\n");
+}
+
+async function sendBookingEmails(db, booking) {
+  const user = db.settings.gmailUser || "";
+  const pwd = db.settings.gmailAppPassword || "";
+  if (!user || !pwd) return;
+
+  const notifyTo = db.settings.notifyEmail || user;
+  const mmdd = booking.date.slice(5).replace("-", "/");
+  const results = [];
+
+  if (booking.email) {
+    try {
+      await sendGmailSmtp({
+        user, password: pwd, to: booking.email,
+        subject: "【美身堂えいち鍼灸院】ご予約ありがとうございます（予約完了）",
+        body: buildPatientEmailBody(db, booking)
+      });
+      results.push({ type: "patient", to: booking.email, status: "sent" });
+    } catch (err) {
+      console.error("[mail:patient]", err.message);
+      results.push({ type: "patient", to: booking.email, status: "error", message: err.message });
+    }
+  }
+
+  try {
+    await sendGmailSmtp({
+      user, password: pwd, to: notifyTo,
+      subject: `【美身堂えいち】新規予約通知: ${booking.name}様（${mmdd} ${booking.time}）`,
+      body: buildClinicEmailBody(db, booking)
+    });
+    results.push({ type: "clinic", to: notifyTo, status: "sent" });
+  } catch (err) {
+    console.error("[mail:clinic]", err.message);
+    results.push({ type: "clinic", to: notifyTo, status: "error", message: err.message });
+  }
+
+  try {
+    const freshDb = readDb();
+    const notif = (freshDb.notifications || []).find(n => n.bookingId === booking.id);
+    if (notif) {
+      notif.emailResults = results;
+      notif.status = results.every(r => r.status === "sent") ? "sent" : results.some(r => r.status === "sent") ? "partial" : "error";
+    }
+    writeDb(freshDb);
+  } catch (err) {
+    console.error("[mail:record]", err.message);
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+
+// ─── Google Calendar iCal 連携 ────────────────────────────
+
+const icalCache = { events: null, fetchedAt: 0 };
+const ICAL_CACHE_TTL = 15 * 60 * 1000;
+
+function fetchIcalText(url) {
+  return new Promise((resolve) => {
+    if (!url || !url.startsWith("http")) return resolve("");
+    const mod = url.startsWith("https") ? https : http;
+    const req = mod.get(url, { timeout: 8000 }, (res) => {
+      let text = "";
+      res.setEncoding("utf8");
+      res.on("data", (chunk) => { text += chunk; if (text.length > 500_000) req.destroy(); });
+      res.on("end", () => resolve(text));
+    });
+    req.on("error", () => resolve(""));
+    req.on("timeout", () => { req.destroy(); resolve(""); });
+  });
+}
+
+function parseIcalDateValue(key, value) {
+  const keyUpper = key.toUpperCase();
+  if (/VALUE=DATE/i.test(keyUpper) || /^\d{8}$/.test(value)) {
+    const m = value.match(/^(\d{4})(\d{2})(\d{2})$/);
+    if (!m) return null;
+    return { isAllDay: true, dateText: `${m[1]}-${m[2]}-${m[3]}` };
+  }
+  const dtm = value.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z?)$/);
+  if (!dtm) return null;
+  const [, yr, mo, dy, hr, mn, , z] = dtm;
+  let dateText = `${yr}-${mo}-${dy}`;
+  let totalMinutes = parseInt(hr) * 60 + parseInt(mn);
+  if (z === "Z") {
+    totalMinutes += 9 * 60;
+    if (totalMinutes >= 24 * 60) {
+      totalMinutes -= 24 * 60;
+      const d = new Date(`${yr}-${mo}-${dy}T00:00:00Z`);
+      d.setUTCDate(d.getUTCDate() + 1);
+      dateText = toDateString(d);
+    }
+  }
+  return { isAllDay: false, dateText, totalMinutes };
+}
+
+function parseIcalEvents(text) {
+  const events = [];
+  const unfolded = text.replace(/\r?\n[ \t]/g, "");
+  const lines = unfolded.split(/\r?\n/);
+  let inEvent = false;
+  let startKey = "", startVal = "", endKey = "", endVal = "";
+
+  for (const line of lines) {
+    const upper = line.trim().toUpperCase();
+    if (upper === "BEGIN:VEVENT") {
+      inEvent = true; startKey = startVal = endKey = endVal = "";
+    } else if (upper === "END:VEVENT") {
+      inEvent = false;
+      if (!startVal) continue;
+      const start = parseIcalDateValue(startKey, startVal);
+      if (!start) continue;
+      if (start.isAllDay) {
+        const end = endVal ? parseIcalDateValue(endKey, endVal) : null;
+        const endDateText = end ? end.dateText : start.dateText;
+        let d = new Date(start.dateText + "T00:00:00Z");
+        const endD = new Date(endDateText + "T00:00:00Z");
+        while (d < endD) {
+          events.push({ isAllDay: true, dateText: toDateString(d) });
+          d.setUTCDate(d.getUTCDate() + 1);
+        }
+        if (d.getTime() === new Date(start.dateText + "T00:00:00Z").getTime()) {
+          events.push({ isAllDay: true, dateText: start.dateText });
+        }
+      } else {
+        const end = endVal ? parseIcalDateValue(endKey, endVal) : null;
+        events.push({
+          isAllDay: false,
+          dateText: start.dateText,
+          startMinutes: start.totalMinutes,
+          endMinutes: end ? end.totalMinutes : start.totalMinutes + 60
+        });
+      }
+    } else if (inEvent) {
+      const ci = line.indexOf(":");
+      if (ci === -1) continue;
+      const k = line.slice(0, ci);
+      const v = line.slice(ci + 1);
+      const ku = k.toUpperCase();
+      if (ku === "DTSTART" || ku.startsWith("DTSTART;")) { startKey = k; startVal = v; }
+      else if (ku === "DTEND" || ku.startsWith("DTEND;")) { endKey = k; endVal = v; }
+    }
+  }
+  return events;
+}
+
+async function getCalendarBlocks(url) {
+  if (!url) return [];
+  const now = Date.now();
+  if (icalCache.events && now - icalCache.fetchedAt < ICAL_CACHE_TTL) return icalCache.events;
+  const text = await fetchIcalText(url);
+  const events = parseIcalEvents(text);
+  icalCache.events = events;
+  icalCache.fetchedAt = Date.now();
+  return events;
+}
+
+function clearIcalCache() {
+  icalCache.events = null;
+  icalCache.fetchedAt = 0;
+}
+
+function hasCalendarConflict(calendarBlocks, dateText, slotStart, slotEnd) {
+  return calendarBlocks.some((block) => {
+    if (block.dateText !== dateText) return false;
+    if (block.isAllDay) return true;
+    return overlaps(slotStart, slotEnd, block.startMinutes, block.endMinutes);
+  });
+}
+
+// ─────────────────────────────────────────────────────────
 
 function toDateString(date) {
   const year = date.getFullYear();
@@ -194,6 +589,7 @@ function normalizeItems(value, fallbackPrefix) {
         name,
         duration: Number(item.duration),
         price: Number(item.price),
+        imageUrl: String(item.imageUrl || "").trim(),
         description: String(item.description || "").trim(),
         treatmentSummary: String(item.treatmentSummary || "").trim()
       };
@@ -256,12 +652,17 @@ function daySchedule(db, dateText) {
   };
 }
 
-function availableSlotsForDate(db, dateText, menuId, optionIds = []) {
+function availableSlotsForDate(db, dateText, menuId, optionIds = [], calendarBlocks = []) {
   const menu = db.menus.find(item => item.id === menuId);
   if (!menu) return [];
 
   const schedule = daySchedule(db, dateText);
   if (!schedule) return [];
+
+  if (hasCalendarConflict(calendarBlocks, dateText, 0, 24 * 60)) {
+    const allDay = calendarBlocks.some(b => b.dateText === dateText && b.isAllDay);
+    if (allDay) return [];
+  }
 
   const options = selectedOptions(db, optionIds);
   const duration = occupiedDuration(menu, options);
@@ -289,14 +690,15 @@ function availableSlotsForDate(db, dateText, menuId, optionIds = []) {
       const blockStart = minutesFromTime(block.time);
       return overlaps(start, end, blockStart, blockStart + 30);
     });
+    const hasCalendarBlock = hasCalendarConflict(calendarBlocks, dateText, start, end);
 
-    if (!hasBookingConflict && !hasManualBlockConflict) slots.push(timeFromMinutes(start));
+    if (!hasBookingConflict && !hasManualBlockConflict && !hasCalendarBlock) slots.push(timeFromMinutes(start));
   }
 
   return slots;
 }
 
-function publicSlotStatusForDate(db, dateText, menuId, optionIds = []) {
+function publicSlotStatusForDate(db, dateText, menuId, optionIds = [], calendarBlocks = []) {
   const menu = db.menus.find(item => item.id === menuId);
   if (!menu) return [];
 
@@ -308,7 +710,7 @@ function publicSlotStatusForDate(db, dateText, menuId, optionIds = []) {
   const close = minutesFromTime(schedule.closeTime);
   const lastReception = minutesFromTime(schedule.lastReceptionTime || schedule.closeTime);
   const latestStart = Math.min(close - duration, lastReception);
-  const availableSlots = new Set(availableSlotsForDate(db, dateText, menuId, optionIds));
+  const availableSlots = new Set(availableSlotsForDate(db, dateText, menuId, optionIds, calendarBlocks));
   const slots = [];
 
   for (let start = open; start <= latestStart; start += db.settings.slotMinutes) {
@@ -525,6 +927,9 @@ function updateConfig(db, input) {
   if (!Number.isFinite(slotMinutes) || slotMinutes < 5 || slotMinutes > 180) return "invalid slot minutes";
   if (!Number.isFinite(maxPerDay) || maxPerDay < 0 || maxPerDay > 50) return "invalid daily booking limit";
 
+  const newIcalUrl = String(settings.googleCalendarIcalUrl || "").trim();
+  if (newIcalUrl !== (db.settings.googleCalendarIcalUrl || "")) clearIcalCache();
+
   db.settings = {
     ...db.settings,
     clinicName: String(settings.clinicName || "").trim() || db.settings.clinicName,
@@ -541,7 +946,8 @@ function updateConfig(db, input) {
     notice: String(settings.notice || "").trim(),
     adminEmail: String(settings.adminEmail || "").trim(),
     contactEmail: String(settings.contactEmail || "").trim(),
-    contactPhone: String(settings.contactPhone || "").trim()
+    contactPhone: String(settings.contactPhone || "").trim(),
+    googleCalendarIcalUrl: newIcalUrl
   };
   db.menus = menus;
   db.options = options;
@@ -668,7 +1074,14 @@ async function handleApi(req, res) {
   }
 
   if (req.method === "GET" && url.pathname === "/api/config") {
-    sendJson(res, 200, isAuthed(req, db) ? { settings: db.settings, menus: db.menus, options: db.options || [] } : publicConfig(db));
+    if (isAuthed(req, db)) {
+      const safeSettings = { ...db.settings };
+      safeSettings.gmailAppPasswordSet = Boolean(safeSettings.gmailAppPassword);
+      delete safeSettings.gmailAppPassword;
+      sendJson(res, 200, { settings: safeSettings, menus: db.menus, options: db.options || [] });
+    } else {
+      sendJson(res, 200, publicConfig(db));
+    }
     return;
   }
 
@@ -723,13 +1136,15 @@ async function handleApi(req, res) {
       return;
     }
 
+    const calendarBlocks = await getCalendarBlocks(db.settings.googleCalendarIcalUrl || "");
+
     if (date) {
       sendJson(res, 200, {
         date,
         menuId,
         optionIds,
-        slots: availableSlotsForDate(db, date, menuId, optionIds),
-        daySlots: publicSlotStatusForDate(db, date, menuId, optionIds)
+        slots: availableSlotsForDate(db, date, menuId, optionIds, calendarBlocks),
+        daySlots: publicSlotStatusForDate(db, date, menuId, optionIds, calendarBlocks)
       });
       return;
     }
@@ -748,6 +1163,13 @@ async function handleApi(req, res) {
     return;
   }
 
+  if (req.method === "POST" && url.pathname === "/api/gcal-sync") {
+    if (!requireAuth(req, res, db)) return;
+    clearIcalCache();
+    sendJson(res, 200, { ok: true, message: "iCal cache cleared" });
+    return;
+  }
+
   if (req.method === "POST" && url.pathname === "/api/bookings") {
     const input = await readBody(req);
     if (input.adminEntry && !requireAuth(req, res, db)) return;
@@ -761,6 +1183,7 @@ async function handleApi(req, res) {
     db.bookings.push(booking);
     createNotification(db, booking);
     writeDb(db);
+    sendBookingEmails(db, booking).catch(err => console.error("[mail:unhandled]", err.message));
     const details = bookingDetails(db, booking);
     sendJson(res, 201, {
       booking,
@@ -814,6 +1237,133 @@ async function handleApi(req, res) {
     return;
   }
 
+  if (req.method === "PUT" && url.pathname === "/api/gmail-settings") {
+    if (!requireAuth(req, res, db)) return;
+    const input = await readBody(req);
+    const gmailUser = String(input.gmailUser || "").trim();
+    const gmailAppPassword = String(input.gmailAppPassword || "").trim();
+    const notifyEmail = String(input.notifyEmail || "").trim();
+    if (gmailUser && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(gmailUser)) {
+      sendJson(res, 400, { error: "Gmailアドレスの形式が正しくありません" });
+      return;
+    }
+    db.settings.gmailUser = gmailUser;
+    if (gmailAppPassword) db.settings.gmailAppPassword = gmailAppPassword;
+    db.settings.notifyEmail = notifyEmail;
+    writeDb(db);
+    sendJson(res, 200, {
+      ok: true,
+      gmailUser: db.settings.gmailUser,
+      gmailAppPasswordSet: Boolean(db.settings.gmailAppPassword),
+      notifyEmail: db.settings.notifyEmail
+    });
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/gmail-test") {
+    if (!requireAuth(req, res, db)) return;
+    const user = db.settings.gmailUser || "";
+    const pwd = db.settings.gmailAppPassword || "";
+    if (!user || !pwd) {
+      sendJson(res, 400, { error: "GmailアドレスとアプリパスワードをGmail設定に保存してください" });
+      return;
+    }
+    const notifyTo = db.settings.notifyEmail || user;
+    try {
+      await sendGmailSmtp({
+        user, password: pwd, to: notifyTo,
+        subject: "【美身堂えいち鍼灸院】Gmail自動送信テスト",
+        body: `テスト送信です。\n\nこのメールが届いていれば、Gmail自動送信の設定は正常です。\n\n送信元: ${user}\n送信先: ${notifyTo}`
+      });
+      sendJson(res, 200, { ok: true, to: notifyTo, message: `${notifyTo} にテストメールを送信しました。` });
+    } catch (err) {
+      sendJson(res, 500, { error: "メール送信に失敗しました。", detail: err.message });
+    }
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/gallery") {
+    sendJson(res, 200, { ok: true, gallery: getGallery(db) });
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/gallery/upload") {
+    if (!requireAuth(req, res, db)) return;
+    try {
+      const input = await readBody(req);
+      const slotId = String(input.slotId || "").trim();
+      const dataUrl = String(input.dataUrl || "").trim();
+      const label = input.label ? String(input.label).trim() : "";
+      const tag = input.tag ? String(input.tag).trim() : "";
+
+      if (!slotId || !dataUrl) {
+        sendJson(res, 400, { error: "スロットIDと画像データは必須です。" });
+        return;
+      }
+
+      const matches = dataUrl.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+      if (!matches) {
+        sendJson(res, 400, { error: "有効な画像データ形式ではありません。" });
+        return;
+      }
+
+      const rawExt = matches[1].toLowerCase();
+      const ext = rawExt === "png" ? "png" : rawExt === "webp" ? "webp" : "jpg";
+      const buffer = Buffer.from(matches[2], "base64");
+      const filename = `slot_${slotId}_${Date.now()}.${ext}`;
+      const uploadDir = UPLOAD_DIR;
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      const destPath = path.join(uploadDir, filename);
+      fs.writeFileSync(destPath, buffer);
+
+      db.gallery = JSON.parse(JSON.stringify(getGallery(db)));
+      const slotIndex = db.gallery.findIndex(item => item.id === slotId);
+      const newImagePath = `/images/gallery/${filename}`;
+
+      if (slotIndex >= 0) {
+        db.gallery[slotIndex].image = newImagePath;
+        if (label) db.gallery[slotIndex].label = label;
+        if (tag) db.gallery[slotIndex].tag = tag;
+      } else {
+        db.gallery.push({
+          id: slotId,
+          category: slotId,
+          label: label || "施術写真",
+          tag: tag || "臨床風景",
+          image: newImagePath,
+          title: label || "施術風景",
+          desc: ""
+        });
+      }
+
+      writeDb(db);
+      sendJson(res, 200, {
+        ok: true,
+        message: "写真を正常に差し替えました！",
+        gallery: db.gallery,
+        updatedSlot: db.gallery.find(item => item.id === slotId)
+      });
+    } catch (err) {
+      sendJson(res, 500, { error: "画像の保存に失敗しました。", detail: err.message });
+    }
+    return;
+  }
+
+  if (req.method === "PUT" && url.pathname === "/api/gallery") {
+    if (!requireAuth(req, res, db)) return;
+    const input = await readBody(req);
+    if (Array.isArray(input.gallery)) {
+      db.gallery = input.gallery;
+      writeDb(db);
+      sendJson(res, 200, { ok: true, message: "ギャラリー情報を更新しました。", gallery: db.gallery });
+      return;
+    }
+    sendJson(res, 400, { error: "gallery配列が必要です。" });
+    return;
+  }
+
   sendJson(res, 404, { error: "not found" });
 }
 
@@ -831,6 +1381,18 @@ function serveStatic(req, res) {
     redirect(res, "/admin.html");
     return;
   }
+
+  if (pathname.startsWith("/images/gallery/")) {
+    const filename = path.basename(pathname);
+    const uploadedPath = path.join(UPLOAD_DIR, filename);
+    if (fs.existsSync(uploadedPath)) {
+      const ext = path.extname(uploadedPath);
+      res.writeHead(200, { "Content-Type": contentTypes[ext] || "application/octet-stream" });
+      fs.createReadStream(uploadedPath).pipe(res);
+      return;
+    }
+  }
+
   const filePath = path.normalize(path.join(PUBLIC_DIR, pathname));
 
   if (!filePath.startsWith(PUBLIC_DIR)) {

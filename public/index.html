@@ -3,149 +3,330 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>予約システム</title>
+    <title>美身堂えいち鍼灸院 | 巡氣調律・美容鍼・ルート治療 愛媛・松山</title>
+    <meta name="description" content="身体・氣・見えない流れを整え、本来の自分へ還る場所。愛媛・松山の美身堂えいち鍼灸院。完全予約制。WEB予約はこちら。">
     <link rel="stylesheet" href="/styles.css">
   </head>
-  <body class="public-page">
-    <header class="site-header">
-      <div>
-        <p class="eyebrow">鍼灸と養生のご予約</p>
-        <h1 id="clinicName">予約ページ</h1>
-        <p id="description" class="lead"></p>
+  <body class="public-page lp-page">
+
+    <!-- ════════════════════════════════════════════
+         ① ヒーローヘッダー（実写背景・白オーバーレイ）
+    ════════════════════════════════════════════ -->
+    <header class="lp-hero">
+
+      <nav class="lp-nav">
+        <a href="/" class="lp-nav-logo" aria-label="美身堂えいち鍼灸院 トップへ">
+          <img src="/images/logo.png" alt="美身堂 えいち 巡気調律鍼灸治療" class="lp-logo">
+        </a>
+        <a class="admin-link lp-admin-link" href="/admin.html">管理画面</a>
+      </nav>
+
+      <div class="lp-hero-body">
+        <img src="/images/logo.png" alt="巡氣調律鍼灸治療" class="lp-hero-logo">
+        <p class="lp-hero-eyebrow">愛媛・松山 ｜ 完全予約制</p>
+        <h2 class="lp-hero-title">
+          <span style="display:inline-block">身体・氣・見えない流れを整え、</span><br>
+          <span style="display:inline-block">本来の自分へ還る場所</span>
+        </h2>
+        <p class="lp-hero-sub">
+          ルート治療・巡氣調律・美容鍼専門<br>
+          <span>美身堂えいち鍼灸院</span>
+        </p>
+        <div class="lp-hero-cta">
+          <a class="lp-cta-primary" href="/reserve.html">WEB予約カレンダー</a>
+          <a class="lp-cta-line lp-line-btn" href="#line-contact">公式LINEでご相談</a>
+        </div>
       </div>
-      <a class="admin-link" href="/admin.html">管理画面</a>
+
     </header>
 
-    <main class="layout">
-      <section class="panel reservation-panel">
-        <ol class="stepper" aria-label="予約の流れ">
-          <li class="active" data-step-indicator="1"><span>1</span>メニュー</li>
-          <li data-step-indicator="2"><span>2</span>日付</li>
-          <li data-step-indicator="3"><span>3</span>時間</li>
-          <li data-step-indicator="4"><span>4</span>お客様情報</li>
-          <li data-step-indicator="5"><span>5</span>確認</li>
-          <li data-step-indicator="6"><span>6</span>完了</li>
-        </ol>
+    <!-- ════════════════════════════════════════════
+         ② 巡氣調律とは（治療の柱・特徴）
+    ════════════════════════════════════════════ -->
+    <section class="lp-section lp-pillars" id="about">
+      <div class="lp-inner">
+        <p class="lp-section-eyebrow">TREATMENT PHILOSOPHY</p>
+        <h2 class="lp-section-title">巡氣調律とは</h2>
+        <p class="lp-section-lead">
+          身体の表面の症状だけを追うのではなく、<br>
+          見えない流れ（氣・血・水）の詰まりを解きほぐし、<br>
+          本来の自己回復力を呼び覚ます独自の治療哲学です。
+        </p>
 
-        <form id="bookingForm" class="form reservation-form">
-          <section class="flow-card" data-flow-step="1">
-            <p class="step-label">Step 1</p>
-            <h2>メニュー選択</h2>
-            <label>
-              メニュー
-              <select name="menuId" id="menuSelect" required></select>
-            </label>
-
-            <div id="optionSection" class="option-section">
-              <h3>オプション</h3>
-              <div id="optionList" class="option-list"></div>
-            </div>
-
-            <div class="menu-detail" id="menuDetail"></div>
-          </section>
-
-          <section class="flow-card calendar-section" data-flow-step="2">
-            <p class="step-label">Step 2</p>
-          <div class="section-heading">
+        <div class="lp-pillars-grid">
+          <div class="lp-pillar-card">
+            <h3 class="lp-pillar-title">深部の滞りを捉える<br>「ルート治療」</h3>
+            <p class="lp-pillar-desc">筋肉だけでなく感情やストレス、無意識の緊張にアプローチ。症状の根を深部から丁寧に解きほぐし、本来の流れへ導きます。</p>
+          </div>
+          <div class="lp-pillar-card">
+            <h3 class="lp-pillar-title">芯から温める<br>「温灸調律」</h3>
+            <p class="lp-pillar-desc">箱灸・めがね灸・臍灸（おへそのお灸）で内臓の冷えと氣の滞りを解きほぐし、身体の芯からの温もりを取り戻します。</p>
+          </div>
+          <div class="lp-pillar-card">
+            <h3 class="lp-pillar-title">細胞と空間を調律する<br>「シンギングボウル」</h3>
+            <p class="lp-pillar-desc">倍音の響きで自律神経を緩め、深い瞑想状態へ。細胞レベルから全身を整える、音の施術です。</p>
+          </div>
+          <div class="lp-pillar-card lp-pillar-card--wide">
+            <div class="lp-pillar-icon lp-pillar-icon--plus">＋</div>
             <div>
-                <h2>日付選択</h2>
-              <p>希望のメニューを選ぶと、予約できる日と時間が表示されます。</p>
-            </div>
-            <div class="calendar-controls">
-              <button id="prevMonthButton" class="secondary-button" type="button">前月</button>
-              <strong id="calendarTitle"></strong>
-              <button id="nextMonthButton" class="secondary-button" type="button">翌月</button>
+              <h3 class="lp-pillar-title">最適な刺激量のオーダーメイド</h3>
+              <p class="lp-pillar-desc">
+                一人ひとりの感受性と当日の体調に合わせたきめ細やかな調整。<br>
+                鍼が不安な方には、無理に鍼を使わず独自の手技療法や温灸を中心としたやさしい施術も承ります。どうぞ安心してご相談ください。
+              </p>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
 
-          <div class="calendar-weekdays">
-            <span>日</span>
-            <span>月</span>
-            <span>火</span>
-            <span>水</span>
-            <span>木</span>
-            <span>金</span>
-            <span>土</span>
-          </div>
-          <div id="availabilityCalendar" class="availability-calendar"></div>
-          </section>
-
-          <section class="flow-card" data-flow-step="3">
-            <p class="step-label">Step 3</p>
-          <div class="slot-panel">
-            <h3 id="selectedDateTitle">日付を選んでください</h3>
-            <div id="slotList" class="slot-list"></div>
-          </div>
-          <div class="two-col">
-            <label>
-              希望日
-              <input name="date" id="dateInput" type="date" required>
-            </label>
-            <label>
-              希望時間
-              <select name="time" id="timeSelect" required></select>
-            </label>
-          </div>
-          </section>
-
-          <section class="flow-card" data-flow-step="4">
-          <p class="step-label">Step 4</p>
-          <h3>お客様情報</h3>
-          <label>
-            お名前
-            <input name="name" autocomplete="name" required>
-          </label>
-          <label>
-            ふりがな
-            <input name="kana">
-          </label>
-          <label>
-            電話番号
-            <input name="phone" autocomplete="tel" required>
-          </label>
-          <label>
-            メールアドレス
-            <input name="email" type="email" autocomplete="email">
-          </label>
-          <label>
-            相談内容・気になること
-            <textarea name="note" rows="5" placeholder="例：肩こり、腰痛、身体の重さ、眠りの浅さなど"></textarea>
-          </label>
-
-          <label class="consent-check">
-            <input name="privacyConsent" type="checkbox" required>
-            <span><a href="/privacy.html" target="_blank" rel="noopener">個人情報の取り扱い</a>に同意します</span>
-          </label>
-          </section>
-
-          <section id="bookingReview" class="flow-card booking-review" data-flow-step="5" hidden></section>
-
-          <div class="booking-actions">
-            <button id="reviewButton" type="submit">予約内容を確認する</button>
-            <button id="editBookingButton" class="secondary-button" type="button" hidden>内容を修正する</button>
-          </div>
-          <p id="formMessage" class="message" role="status"></p>
-          <div id="confirmationActions" class="confirmation-actions" hidden></div>
-        </form>
-      </section>
-
-      <aside class="panel subtle guidance-panel">
-        <h2>ご案内</h2>
-        <p id="notice"></p>
-        <dl class="info-list">
+    <!-- ════════════════════════════════════════════
+         ③ 実際の施術風景（5枠写真ストリップ）
+    ════════════════════════════════════════════ -->
+    <section class="lp-section lp-gallery-strip-section" id="clinical-scenes">
+      <div class="lp-inner">
+        <div class="lp-gallery-strip-header">
           <div>
-            <dt>受付時間</dt>
-            <dd id="hours"></dd>
+            <p class="lp-gallery-strip-eyebrow">CLINICAL SCENES</p>
+            <h2 class="lp-gallery-strip-title">実際の施術風景</h2>
+            <p class="lp-gallery-strip-lead">ルート治療・温灸・美容鍼、そして倍音調律。実際の施術の様子をお届けします。</p>
           </div>
-          <div>
-            <dt>定休日</dt>
-            <dd id="closedDays"></dd>
-          </div>
-        </dl>
-        <p class="aside-link"><a href="/privacy.html">個人情報の取り扱い</a></p>
-      </aside>
-    </main>
+          <a class="lp-gallery-more-link" href="/treatment.html">すべての写真を見る →</a>
+        </div>
 
-    <script src="/app.js"></script>
+        <div class="lp-gallery-strip-grid">
+          <a class="lp-gallery-item" href="/treatment.html" data-gallery-slot="slot-1">
+            <div class="lp-gallery-thumb">
+              <img src="/images/gallery/01_route_back.jpg" alt="首肩・背中のルート治療" loading="lazy">
+              <span class="lp-gallery-tag">首肩・背中</span>
+            </div>
+            <p class="lp-gallery-label">ルート治療</p>
+          </a>
+
+          <a class="lp-gallery-item" href="/treatment.html" data-gallery-slot="slot-2">
+            <div class="lp-gallery-thumb">
+              <img src="/images/gallery/02_dialogue.jpg" alt="温かな対話と笑顔" loading="lazy">
+              <span class="lp-gallery-tag">安心の対話</span>
+            </div>
+            <p class="lp-gallery-label">和やかな時間</p>
+          </a>
+
+          <a class="lp-gallery-item" href="/treatment.html" data-gallery-slot="slot-3">
+            <div class="lp-gallery-thumb">
+              <img src="/images/gallery/03_head_acupuncture.jpg" alt="頭部ルート治療" loading="lazy">
+              <span class="lp-gallery-tag">脳疲労・自律神経</span>
+            </div>
+            <p class="lp-gallery-label">頭部刺鍼</p>
+          </a>
+
+          <a class="lp-gallery-item" href="/treatment.html" data-gallery-slot="slot-4">
+            <div class="lp-gallery-thumb">
+              <img src="/images/gallery/04_beauty_acupuncture.jpg" alt="巡氣調律美容鍼" loading="lazy">
+              <span class="lp-gallery-tag">お顔・デコルテ</span>
+            </div>
+            <p class="lp-gallery-label">巡氣調律美容鍼</p>
+          </a>
+
+          <a class="lp-gallery-item" href="/treatment.html" data-gallery-slot="slot-5">
+            <div class="lp-gallery-thumb">
+              <img src="/images/gallery/05_singing_bowl_event.jpg" alt="シンギングボウル調律イベント" loading="lazy">
+              <span class="lp-gallery-tag">特別イベント</span>
+            </div>
+            <p class="lp-gallery-label">倍音調律セッション</p>
+          </a>
+        </div>
+
+        <div class="lp-gallery-strip-cta">
+          <a class="lp-cta-secondary" href="/treatment.html">施術風景・臨床のご紹介を詳しく見る →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════
+         ④ 院長プロフィール（松岡あゆみ / あらん）
+    ════════════════════════════════════════════ -->
+    <section class="lp-section lp-profile" id="profile">
+      <div class="lp-inner lp-profile-inner">
+        <div class="lp-profile-photo">
+          <img src="/images/matsuoka-ayumi.jpg" alt="院長 あらん（松岡あゆみ）" class="lp-profile-img" loading="lazy">
+        </div>
+        <div class="lp-profile-text">
+          <p class="lp-section-eyebrow">ABOUT THE PRACTITIONER</p>
+          <h2 class="lp-section-title lp-profile-name">院長 あらん <span class="lp-profile-en">[ ARAN ]</span></h2>
+          <p class="lp-profile-credentials">鍼灸師：松岡あゆみ</p>
+          <div class="lp-profile-body">
+            <p>美容サロンを経営していた頃、「美しくありたい」と願う女性たちを支える中で得た決定的な気づき――それは、<strong>「本物の美しさも、前を向いて生きる力も、すべては巡る健康という土台があってこそ花開く」</strong>ということでした。</p>
+            <p>全身治療の鍼灸師へ転身し、数ある技法の中で運命的に出会ったのが「ルート治療」でした。症状を治すのは大前提。その先にある、<strong>患者様が本来持っている魅力や潜在能力、そして人生の運気の流れまでもが動き出す</strong>ような治療を追求しています。</p>
+            <p>当院ではルート治療をベースに、芯から温める温灸やシンギングボウルの倍音を融合し、その方に合わせた最適な刺激量で調律します。無理に鍼を使わず独自の手技やお灸での施術も可能です。<strong>「本気で自分と向き合ってみたい」</strong>と願うあなたを、心を込めてお迎えします。</p>
+          </div>
+          <a class="lp-cta-secondary lp-profile-cta" href="/reserve.html">WEB予約はこちら</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════
+         ④ 施術メニュー＆料金案内
+    ════════════════════════════════════════════ -->
+    <section class="lp-section lp-menu-section" id="menu">
+      <div class="lp-inner">
+        <p class="lp-section-eyebrow">TREATMENT MENU</p>
+        <h2 class="lp-section-title">施術メニュー＆料金</h2>
+        <p class="lp-section-lead">身体の状態とご要望に合わせて、最適なコースをお選びください。</p>
+
+        <div class="lp-menu-grid">
+          <div class="lp-menu-card lp-menu-card--featured">
+            <p class="lp-menu-tag">FLAGSHIP</p>
+            <h3>巡氣調律治療 <span class="lp-menu-min">90分</span></h3>
+            <p class="lp-menu-price">¥24,000<span>（税込）</span></p>
+            <p class="lp-menu-desc">全身の巡りを深部から整える、えいちの本治療。ルート治療・温灸・シンギングボウルを組み合わせた集大成のコースです。</p>
+          </div>
+          <div class="lp-menu-card">
+            <p class="lp-menu-tag">STANDARD</p>
+            <h3>巡氣調律治療 <span class="lp-menu-min">60分</span></h3>
+            <p class="lp-menu-price">¥16,000<span>（税込）</span></p>
+            <p class="lp-menu-desc">定期的なメンテナンスに最適なスタンダードコース。身体の流れを整え、次のステージへ。</p>
+          </div>
+          <div class="lp-menu-card">
+            <p class="lp-menu-tag">SHORT</p>
+            <h3>巡氣調律治療 <span class="lp-menu-min">30分</span></h3>
+            <p class="lp-menu-price">¥8,800<span>（税込）</span></p>
+            <p class="lp-menu-desc">お仕事の合間や初回体験にも。短時間でも深部の滞りへしっかりアプローチします。</p>
+          </div>
+          <div class="lp-menu-card">
+            <p class="lp-menu-tag">BEAUTY</p>
+            <h3>巡氣調律美容鍼</h3>
+            <p class="lp-menu-price">¥12,000<span>（税込）</span></p>
+            <p class="lp-menu-desc">お顔に蓄積したコリや滞り、感情の緊張へ。コラーゲン生成を促しながら、内側から輝く本来の表情を取り戻します。</p>
+          </div>
+          <div class="lp-menu-card">
+            <p class="lp-menu-tag">STUDENT</p>
+            <h3>鍼灸学生応援メニュー</h3>
+            <p class="lp-menu-price">¥5,000<span>（税込）</span></p>
+            <p class="lp-menu-desc">鍼灸を学ぶ学生の皆さんへ。身体で覚える本物の施術体験を、学生応援価格でお届けします。</p>
+          </div>
+        </div>
+
+        <div class="lp-options-row">
+          <p class="lp-options-label">オプション</p>
+          <div class="lp-options-list">
+            <div class="lp-option-item">
+              <span class="lp-option-name">箱灸・めがね灸</span>
+              <span class="lp-option-price">+¥1,500</span>
+            </div>
+            <div class="lp-option-item">
+              <span class="lp-option-name">吸い玉</span>
+              <span class="lp-option-price">+¥2,000</span>
+            </div>
+            <div class="lp-option-item">
+              <span class="lp-option-name">臍灸（おへそのお灸）</span>
+              <span class="lp-option-price">+¥500</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="lp-menu-note">お支払いは当日現地にて現金決済となります。</p>
+
+        <div class="lp-menu-cta">
+          <a class="lp-cta-primary" href="/reserve.html">メニューを選んで予約する</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════
+         ⑤ Instagram & note 連携セクション
+    ════════════════════════════════════════════ -->
+    <section class="lp-section lp-social-section" id="social">
+      <div class="lp-inner">
+        <p class="lp-section-eyebrow">CONNECT</p>
+        <h2 class="lp-section-title">発信・つながり</h2>
+        <div class="lp-social-grid">
+          <div class="lp-social-card lp-social-card--instagram">
+            <div class="lp-social-icon lp-social-icon--ig">
+              <span>IG</span>
+            </div>
+            <div class="lp-social-body">
+              <h3>Instagram</h3>
+              <p class="lp-social-handle">@bishin.eichi</p>
+              <p>日々の施術風景や臨床の気づきを発信中。身体と季節のリズムを一緒に感じましょう。</p>
+              <a class="lp-cta-secondary" href="https://www.instagram.com/bishin.eichi/" target="_blank" rel="noopener">Instagramを見る</a>
+            </div>
+          </div>
+          <div class="lp-social-card lp-social-card--note">
+            <div class="lp-social-icon lp-social-icon--note">
+              <span>note</span>
+            </div>
+            <div class="lp-social-body">
+              <h3>美身堂 公式note</h3>
+              <p class="lp-social-handle">note.com/bishin_eichi</p>
+              <p>東洋医学・心と身体の巡り・日々の生き方を綴る公式note。陰陽五行の知恵から、毎日をよりよく生きるヒントを発信しています。</p>
+              <a class="lp-cta-secondary" href="https://note.com/bishin_eichi" target="_blank" rel="noopener">noteを読む</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════════════════════════
+         ⑥ サロン案内・アクセス・フッター
+    ════════════════════════════════════════════ -->
+    <footer class="lp-footer" id="access">
+      <div class="lp-inner lp-footer-inner">
+        <div class="lp-footer-info">
+          <img src="/images/logo.png" alt="美身堂えいち鍼灸院" class="lp-footer-logo">
+          <dl class="lp-footer-dl">
+            <div>
+              <dt>院名</dt>
+              <dd>美身堂えいち鍼灸院</dd>
+            </div>
+            <div>
+              <dt>所在地</dt>
+              <dd>愛媛県松山市（完全予約制）<br><small>詳細な住所はLINEにてご案内します</small></dd>
+            </div>
+            <div>
+              <dt>営業時間</dt>
+              <dd>11:00〜19:00<br><small>不定休・出張日あり</small></dd>
+            </div>
+            <div>
+              <dt>お支払い</dt>
+              <dd>当日現地にて現金決済</dd>
+            </div>
+          </dl>
+          <!-- LINE公式アカウントURL → 管理者が更新してください -->
+          <a class="lp-cta-line lp-cta-line-footer" href="#" id="line-contact">公式LINEに登録する</a>
+        </div>
+        <nav class="lp-footer-nav" aria-label="ページ内リンク">
+          <a href="#about">巡氣調律とは</a>
+          <a href="#profile">院長プロフィール</a>
+          <a href="#menu">施術メニュー</a>
+          <a href="/reserve.html">WEB予約</a>
+          <a href="#social">Instagram / note</a>
+          <a href="/privacy.html">個人情報の取り扱い</a>
+          <a href="/admin.html">管理画面</a>
+        </nav>
+      </div>
+      <div class="lp-footer-bottom">
+        <p>&copy; 2024 美身堂えいち鍼灸院. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script>
+      (async function() {
+        try {
+          const res = await fetch('/api/gallery');
+          const data = await res.json();
+          if (!data.ok || !Array.isArray(data.gallery)) return;
+          data.gallery.forEach(slot => {
+            const item = document.querySelector(`[data-gallery-slot="${slot.id}"]`);
+            if (!item) return;
+            const img = item.querySelector('img');
+            const tag = item.querySelector('.lp-gallery-tag');
+            const label = item.querySelector('.lp-gallery-label');
+            if (img && slot.image) img.src = slot.image;
+            if (tag && slot.tag) tag.textContent = slot.tag;
+            if (label && slot.label) label.textContent = slot.label;
+          });
+        } catch (_) {}
+      })();
+    </script>
   </body>
 </html>

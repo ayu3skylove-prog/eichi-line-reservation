@@ -47,6 +47,12 @@ const dialogBlockEndInput = document.querySelector("#dialogBlockEndInput");
 const dialogBlockReasonInput = document.querySelector("#dialogBlockReasonInput");
 const slotDialogMessage = document.querySelector("#slotDialogMessage");
 const slotSubmitButton = document.querySelector("#slotSubmitButton");
+const gmailForm = document.querySelector("#gmailForm");
+const gmailUserInput = document.querySelector("#gmailUserInput");
+const gmailAppPasswordInput = document.querySelector("#gmailAppPasswordInput");
+const notifyEmailInput = document.querySelector("#notifyEmailInput");
+const gmailTestButton = document.querySelector("#gmailTestButton");
+const gmailMessage = document.querySelector("#gmailMessage");
 
 function menuName(menuId) {
   const menu = menus.find(item => item.id === menuId);
@@ -69,6 +75,20 @@ function escapeHtml(value) {
 function setSettingsMessage(text, type = "") {
   settingsMessage.textContent = text;
   settingsMessage.className = `message ${type}`.trim();
+}
+
+function setGmailMessage(text, type = "") {
+  gmailMessage.textContent = text;
+  gmailMessage.className = `message ${type}`.trim();
+}
+
+function fillGmailSettings(settings) {
+  gmailUserInput.value = settings.gmailUser || "";
+  gmailAppPasswordInput.value = "";
+  gmailAppPasswordInput.placeholder = settings.gmailAppPasswordSet
+    ? "（設定済み・変更する場合のみ入力）"
+    : "xxxx xxxx xxxx xxxx";
+  notifyEmailInput.value = settings.notifyEmail || "";
 }
 
 function setPasswordMessage(text, type = "") {
@@ -495,6 +515,10 @@ function renderItemEditor(container, items, type) {
       <label>
         治療の説明
         <textarea data-field="treatmentSummary" data-index="${index}" rows="3">${escapeHtml(item.treatmentSummary || "")}</textarea>
+      </label>
+      <label>
+        メニュー画像URL
+        <input data-field="imageUrl" data-index="${index}" type="url" value="${escapeHtml(item.imageUrl || "")}" placeholder="https://...">
       </label>` : ""}
       <button class="danger-button" data-delete-${type}="${index}" type="button">削除</button>
     `;
@@ -531,6 +555,7 @@ function fillSettings(config) {
   settingsForm.elements.adminEmail.value = config.settings.adminEmail || "";
   settingsForm.elements.contactEmail.value = config.settings.contactEmail || "";
   settingsForm.elements.contactPhone.value = config.settings.contactPhone || "";
+  settingsForm.elements.googleCalendarIcalUrl.value = config.settings.googleCalendarIcalUrl || "";
   manualBlocks = [...(config.settings.manualBlocks || [])];
   if (!blockDateInput.value) blockDateInput.value = todayText();
   settingsForm.querySelectorAll('input[name="closedWeekdays"]').forEach(input => {
@@ -539,6 +564,7 @@ function fillSettings(config) {
   renderItemEditor(menuEditor, config.menus || [], "menu");
   renderItemEditor(optionEditor, config.options || [], "option");
   renderManualBlocks();
+  fillGmailSettings(config.settings);
 }
 
 function buildSettingsPayload() {
@@ -559,7 +585,8 @@ function buildSettingsPayload() {
       notice: formData.get("notice"),
       adminEmail: formData.get("adminEmail"),
       contactEmail: formData.get("contactEmail"),
-      contactPhone: formData.get("contactPhone")
+      contactPhone: formData.get("contactPhone"),
+      googleCalendarIcalUrl: formData.get("googleCalendarIcalUrl")
     },
     menus: readItemsFromEditor(menuEditor),
     options: readItemsFromEditor(optionEditor)
@@ -879,6 +906,7 @@ addMenuButton.addEventListener("click", () => {
     name: "新しいメニュー",
     duration: 60,
     price: 0,
+    imageUrl: "",
     description: "",
     treatmentSummary: ""
   });
@@ -960,11 +988,167 @@ rows.addEventListener("click", event => {
   if (button) cancelBooking(button.dataset.cancel);
 });
 
-refreshButton.addEventListener("click", loadBookings);
+gmailForm.addEventListener("submit", async event => {
+  event.preventDefault();
+  setGmailMessage("保存しています...");
+  const formData = new FormData(gmailForm);
+  const res = await fetch("/api/gmail-settings", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      gmailUser: formData.get("gmailUser"),
+      gmailAppPassword: formData.get("gmailAppPassword"),
+      notifyEmail: formData.get("notifyEmail")
+    })
+  });
+  if (res.status === 401) { location.href = "/login.html"; return; }
+  const data = await res.json();
+  if (!res.ok) {
+    setGmailMessage(data.error || "保存できませんでした。", "error");
+    return;
+  }
+  gmailAppPasswordInput.value = "";
+  gmailAppPasswordInput.placeholder = data.gmailAppPasswordSet ? "（設定済み・変更する場合のみ入力）" : "xxxx xxxx xxxx xxxx";
+  setGmailMessage("Gmail設定を保存しました。", "success");
+});
+
+gmailTestButton.addEventListener("click", async () => {
+  setGmailMessage("テストメールを送信しています...");
+  const res = await fetch("/api/gmail-test", { method: "POST" });
+  const data = await res.json();
+  if (!res.ok) {
+    setGmailMessage(`送信失敗: ${data.error}${data.detail ? `（${data.detail}）` : ""}`, "error");
+    return;
+  }
+  setGmailMessage(data.message || "テストメールを送信しました。", "success");
+});
+
+refreshButton.addEventListener("click", () => {
+  loadBookings();
+  loadGalleryAdmin();
+});
 
 logoutButton.addEventListener("click", async () => {
   await fetch("/api/logout", { method: "POST" });
   location.href = "/login.html";
 });
 
+// ─── 施術写真・臨床ギャラリー管理 ───
+const galleryAdminGrid = document.getElementById("galleryAdminGrid");
+const galleryAdminGlobalMessage = document.getElementById("galleryAdminGlobalMessage");
+
+async function loadGalleryAdmin() {
+  if (!galleryAdminGrid) return;
+  try {
+    const res = await fetch("/api/gallery");
+    const data = await res.json();
+    if (!data.ok || !Array.isArray(data.gallery)) return;
+    renderGalleryAdmin(data.gallery);
+  } catch (err) {
+    console.error("Failed to load gallery:", err);
+  }
+}
+
+function renderGalleryAdmin(slots) {
+  galleryAdminGrid.innerHTML = "";
+  slots.forEach((slot, index) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.cssText = "background:#fff;border:1px solid #e0dbd3;border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px;";
+    
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-weight:700;color:var(--primary,#5e2a84);font-size:13px;">スロット ${index + 1}</span>
+        <span style="font-size:11px;background:#f0ece6;padding:2px 8px;border-radius:4px;color:#666;">${slot.tag || "タグ未設定"}</span>
+      </div>
+      <div style="aspect-ratio:4/3;background:#eee;border-radius:6px;overflow:hidden;position:relative;">
+        <img id="preview_${slot.id}" src="${slot.image}?t=${Date.now()}" alt="${slot.label}" style="width:100%;height:100%;object-fit:cover;display:block;">
+      </div>
+      <div>
+        <strong style="display:block;font-size:14px;color:#222;margin-bottom:2px;">${slot.label || "施術写真"}</strong>
+        <p style="font-size:12px;color:#777;margin:0;line-height:1.4;">${slot.title || ""}</p>
+      </div>
+      <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px;">
+        <label class="secondary-button" style="text-align:center;cursor:pointer;font-size:12px;padding:8px 12px;display:block;">
+          📷 新しい写真を選択
+          <input type="file" id="file_${slot.id}" accept="image/*" style="display:none;">
+        </label>
+        <button type="button" id="uploadBtn_${slot.id}" style="font-size:12px;padding:8px 12px;display:none;background:#8a6d3b;color:#fff;border:none;border-radius:6px;cursor:pointer;">
+          ⬆️ この写真に差し替える
+        </button>
+        <p id="msg_${slot.id}" class="message" style="margin:0;font-size:12px;min-height:18px;"></p>
+      </div>
+    `;
+
+    galleryAdminGrid.appendChild(card);
+
+    const fileInput = card.querySelector(`#file_${slot.id}`);
+    const uploadBtn = card.querySelector(`#uploadBtn_${slot.id}`);
+    const previewImg = card.querySelector(`#preview_${slot.id}`);
+    const msgEl = card.querySelector(`#msg_${slot.id}`);
+
+    let selectedDataUrl = null;
+
+    fileInput.addEventListener("change", event => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = e => {
+        selectedDataUrl = e.target.result;
+        previewImg.src = selectedDataUrl;
+        uploadBtn.style.display = "block";
+        uploadBtn.textContent = `⬆️ 「${file.name.slice(0, 15)}」に差し替える`;
+        msgEl.textContent = "画像が選択されました。「差し替える」ボタンを押してください。";
+        msgEl.className = "message";
+      };
+      reader.readAsDataURL(file);
+    });
+
+    uploadBtn.addEventListener("click", async () => {
+      if (!selectedDataUrl) return;
+      uploadBtn.disabled = true;
+      uploadBtn.textContent = "アップロード中...";
+      msgEl.textContent = "保存しています...";
+      msgEl.className = "message";
+
+      try {
+        const res = await fetch("/api/gallery/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            slotId: slot.id,
+            dataUrl: selectedDataUrl
+          })
+        });
+
+        if (res.status === 401) {
+          location.href = "/login.html";
+          return;
+        }
+
+        const data = await res.json();
+        if (!res.ok) {
+          msgEl.textContent = data.error || "アップロードに失敗しました。";
+          msgEl.className = "message error";
+          uploadBtn.disabled = false;
+          uploadBtn.textContent = "再試行";
+          return;
+        }
+
+        msgEl.textContent = "✨ 写真を正常に差し替えました！";
+        msgEl.className = "message success";
+        uploadBtn.style.display = "none";
+        previewImg.src = `${data.updatedSlot.image}?t=${Date.now()}`;
+      } catch (err) {
+        msgEl.textContent = `通信エラー: ${err.message}`;
+        msgEl.className = "message error";
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = "再試行";
+      }
+    });
+  });
+}
+
 loadBookings();
+loadGalleryAdmin();

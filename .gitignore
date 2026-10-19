@@ -4,3 +4,5 @@ node_modules/
 data/db.json
 data/db.json.*
 
+cookies.txt
+server.log
