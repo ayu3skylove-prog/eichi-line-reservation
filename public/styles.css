@@ -3394,3 +3394,287 @@ body.lp-page::before {
   opacity: 0.75;
 }
 
+/* ════════════════════════════════════════════════════════════════
+   ⑧ 治療院情報・アクセス・Googleビジネス連携スタイル
+   ════════════════════════════════════════════════════════════════ */
+
+.lp-section--access {
+  background: #f7f4ee;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  padding: clamp(60px, 9vw, 110px) 0;
+}
+
+.lp-access-grid {
+  display: grid;
+  gap: clamp(24px, 4vw, 40px);
+  grid-template-columns: 1fr;
+  margin-top: clamp(28px, 4vw, 44px);
+}
+
+@media (min-width: 900px) {
+  .lp-access-grid {
+    align-items: stretch;
+    grid-template-columns: 1fr 1.15fr;
+  }
+}
+
+/* ── 左側：治療院情報カード ── */
+.lp-access-info-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(43, 38, 35, 0.04);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(24px, 4vw, 36px);
+}
+
+.lp-access-badge-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.lp-access-badge {
+  background: rgba(92, 76, 116, 0.08);
+  border-radius: 999px;
+  color: #5c4c74;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 4px 12px;
+}
+
+.lp-access-badge--gold {
+  background: rgba(181, 148, 86, 0.12);
+  color: #8c6d32;
+}
+
+.lp-access-salon-name {
+  color: #1f1b18;
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+  font-size: clamp(20px, 3.2vw, 26px);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+  margin: 0 0 20px;
+}
+
+.lp-access-salon-sub {
+  color: #8c6d32;
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  margin-bottom: 4px;
+}
+
+.lp-access-dl {
+  border-top: 1px solid #f0ece3;
+  display: grid;
+  gap: 0;
+  margin: 0 0 24px;
+}
+
+.lp-access-dl > div {
+  border-bottom: 1px solid #f0ece3;
+  display: grid;
+  gap: 8px;
+  padding: 14px 0;
+}
+
+@media (min-width: 520px) {
+  .lp-access-dl > div {
+    gap: 16px;
+    grid-template-columns: 110px 1fr;
+  }
+}
+
+.lp-access-dl dt {
+  color: #8a847c;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  margin: 0;
+  padding-top: 2px;
+}
+
+.lp-access-dl dd {
+  color: #2b2623;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 13px;
+  line-height: 1.8;
+  margin: 0;
+}
+
+.lp-access-address {
+  color: #1a1614;
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.lp-access-note {
+  color: #7a746c;
+  display: block;
+  font-size: 11px;
+  line-height: 1.6;
+  margin-top: 3px;
+}
+
+/* ── Googleビジネス連携ボタン群 ── */
+.lp-google-actions {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr;
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+@media (min-width: 480px) {
+  .lp-google-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+  .lp-btn-compass {
+    grid-column: span 2;
+  }
+}
+
+.lp-btn-gmap,
+.lp-btn-review,
+.lp-btn-compass {
+  align-items: center;
+  border-radius: 8px;
+  display: inline-flex;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  gap: 8px;
+  justify-content: center;
+  letter-spacing: 0.03em;
+  min-height: 44px;
+  padding: 10px 16px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.lp-btn-gmap {
+  background: #1a73e8;
+  border: 1px solid #1a73e8;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(26, 115, 232, 0.25);
+}
+
+.lp-btn-gmap:hover {
+  background: #1557b0;
+  border-color: #1557b0;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.lp-btn-review {
+  background: #ffffff;
+  border: 1px solid #d9d4cb;
+  color: #2b2623;
+}
+
+.lp-btn-review svg {
+  color: #fbbc04;
+}
+
+.lp-btn-review:hover {
+  background: #faf8f5;
+  border-color: #bfa87a;
+  color: #1a1614;
+  transform: translateY(-1px);
+}
+
+.lp-btn-compass {
+  background: rgba(92, 76, 116, 0.06);
+  border: 1px solid rgba(92, 76, 116, 0.15);
+  color: #5c4c74;
+}
+
+.lp-btn-compass:hover {
+  background: rgba(92, 76, 116, 0.12);
+  color: #3b2f4c;
+}
+
+/* ── 右側：Googleマップ埋め込みカード ── */
+.lp-access-map-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(43, 38, 35, 0.04);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.lp-map-header {
+  align-items: center;
+  background: #fdfcf9;
+  border-bottom: 1px solid #f0ece3;
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 18px;
+}
+
+.lp-map-title {
+  color: #4a4540;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.lp-map-enlarge {
+  color: #1a73e8;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+
+.lp-map-enlarge:hover {
+  opacity: 0.75;
+  text-decoration: underline;
+}
+
+.lp-map-wrapper {
+  flex: 1;
+  min-height: 380px;
+  position: relative;
+  width: 100%;
+}
+
+.lp-map-wrapper iframe {
+  display: block;
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+.lp-map-footer {
+  background: #fdfcf9;
+  border-top: 1px solid #f0ece3;
+  padding: 10px 18px;
+}
+
+.lp-map-caption {
+  color: #7a746c;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 11px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+
