@@ -195,15 +195,16 @@ function formatJaDate(dateText) {
   return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日（${weekdays[d.getDay()]}）`;
 }
 
-function sendGmailSmtp({ user, password, to, subject, body }) {
+function trySmtp465(user, password, to, subject, body) {
   return new Promise((resolve, reject) => {
-    const cleanUser = String(user || "").trim();
-    const cleanPassword = String(password || "").replace(/\s+/g, "");
-    const cleanTo = String(to || "").trim();
-    const socket = tls.connect(465, "smtp.gmail.com", { servername: "smtp.gmail.com" });
+    const socket = tls.connect({
+      host: "smtp.gmail.com",
+      port: 465,
+      servername: "smtp.gmail.com",
+      family: 4
+    });
     let buf = "";
     let step = 0;
-
     const write = (text) => socket.write(text + "\r\n");
 
     function onLine(line) {
@@ -216,18 +217,18 @@ function sendGmailSmtp({ user, password, to, subject, body }) {
         write("AUTH LOGIN");
       } else if (step === 2) {
         step = 3;
-        write(Buffer.from(cleanUser).toString("base64"));
+        write(Buffer.from(user).toString("base64"));
       } else if (step === 3) {
         step = 4;
-        write(Buffer.from(cleanPassword).toString("base64"));
+        write(Buffer.from(password).toString("base64"));
       } else if (step === 4) {
         if (code !== 235) { socket.destroy(); return reject(new Error(`Gmail auth failed: ${line}`)); }
         step = 5;
-        write(`MAIL FROM:<${cleanUser}>`);
+        write(`MAIL FROM:<${user}>`);
       } else if (step === 5) {
         if (code !== 250) { socket.destroy(); return reject(new Error(`MAIL FROM failed: ${line}`)); }
         step = 6;
-        write(`RCPT TO:<${cleanTo}>`);
+        write(`RCPT TO:<${to}>`);
       } else if (step === 6) {
         if (code !== 250) { socket.destroy(); return reject(new Error(`RCPT TO failed: ${line}`)); }
         step = 7;
@@ -239,8 +240,8 @@ function sendGmailSmtp({ user, password, to, subject, body }) {
         const raw = Buffer.from(body).toString("base64");
         const b64Body = (raw.match(/.{1,76}/g) || [""]).join("\r\n");
         write([
-          `From: ${cleanUser}`,
-          `To: ${cleanTo}`,
+          `From: ${user}`,
+          `To: ${to}`,
           `Subject: ${encSubject}`,
           "MIME-Version: 1.0",
           "Content-Type: text/plain; charset=UTF-8",
@@ -260,8 +261,8 @@ function sendGmailSmtp({ user, password, to, subject, body }) {
     }
 
     socket.setEncoding("utf8");
-    socket.setTimeout(20000);
-    socket.on("timeout", () => { socket.destroy(); reject(new Error("SMTP timeout")); });
+    socket.setTimeout(12000);
+    socket.on("timeout", () => { socket.destroy(); reject(new Error("SMTP timeout (port 465)")); });
     socket.on("error", reject);
     socket.on("data", (chunk) => {
       buf += chunk;
@@ -275,6 +276,109 @@ function sendGmailSmtp({ user, password, to, subject, body }) {
       }
     });
   });
+}
+
+function trySmtp587(user, password, to, subject, body) {
+  return new Promise((resolve, reject) => {
+    const rawSocket = net.connect({ host: "smtp.gmail.com", port: 587, family: 4 });
+    let socket = rawSocket;
+    let buf = "";
+    let step = 0;
+    const write = (text) => socket.write(text + "\r\n");
+
+    function onLine(line) {
+      const code = parseInt(line.slice(0, 3), 10);
+      if (step === 0) {
+        step = 1;
+        write("EHLO localhost");
+      } else if (step === 1 && code === 250) {
+        step = 2;
+        write("STARTTLS");
+      } else if (step === 2 && code === 220) {
+        step = 3;
+        socket = tls.connect({ socket: rawSocket, host: "smtp.gmail.com", servername: "smtp.gmail.com" });
+        socket.setEncoding("utf8");
+        socket.on("data", onData);
+        socket.on("error", reject);
+        write("EHLO localhost");
+      } else if (step === 3 && code === 250) {
+        step = 4;
+        write("AUTH LOGIN");
+      } else if (step === 4) {
+        step = 5;
+        write(Buffer.from(user).toString("base64"));
+      } else if (step === 5) {
+        step = 6;
+        write(Buffer.from(password).toString("base64"));
+      } else if (step === 6) {
+        if (code !== 235) { socket.destroy(); return reject(new Error(`Gmail auth failed: ${line}`)); }
+        step = 7;
+        write(`MAIL FROM:<${user}>`);
+      } else if (step === 7) {
+        if (code !== 250) { socket.destroy(); return reject(new Error(`MAIL FROM failed: ${line}`)); }
+        step = 8;
+        write(`RCPT TO:<${to}>`);
+      } else if (step === 8) {
+        if (code !== 250) { socket.destroy(); return reject(new Error(`RCPT TO failed: ${line}`)); }
+        step = 9;
+        write("DATA");
+      } else if (step === 9) {
+        if (code !== 354) { socket.destroy(); return reject(new Error(`DATA rejected: ${line}`)); }
+        step = 10;
+        const encSubject = `=?UTF-8?B?${Buffer.from(subject).toString("base64")}?=`;
+        const raw = Buffer.from(body).toString("base64");
+        const b64Body = (raw.match(/.{1,76}/g) || [""]).join("\r\n");
+        write([
+          `From: ${user}`,
+          `To: ${to}`,
+          `Subject: ${encSubject}`,
+          "MIME-Version: 1.0",
+          "Content-Type: text/plain; charset=UTF-8",
+          "Content-Transfer-Encoding: base64",
+          "",
+          b64Body,
+          "."
+        ].join("\r\n"));
+      } else if (step === 10) {
+        if (code !== 250) { socket.destroy(); return reject(new Error(`Message rejected: ${line}`)); }
+        step = 11;
+        write("QUIT");
+      } else if (step === 11) {
+        socket.destroy();
+        resolve({ ok: true });
+      }
+    }
+
+    function onData(chunk) {
+      buf += chunk;
+      while (true) {
+        const idx = buf.indexOf("\r\n");
+        if (idx === -1) break;
+        const line = buf.slice(0, idx);
+        buf = buf.slice(idx + 2);
+        if (line.length >= 4 && line[3] === "-") continue;
+        onLine(line);
+      }
+    }
+
+    rawSocket.setEncoding("utf8");
+    rawSocket.setTimeout(12000);
+    rawSocket.on("timeout", () => { rawSocket.destroy(); reject(new Error("SMTP timeout (port 587)")); });
+    rawSocket.on("error", reject);
+    rawSocket.on("data", onData);
+  });
+}
+
+function sendGmailSmtp({ user, password, to, subject, body }) {
+  const cleanUser = String(user || "").trim();
+  const cleanPassword = String(password || "").replace(/\s+/g, "");
+  const cleanTo = String(to || "").trim();
+
+  return trySmtp465(cleanUser, cleanPassword, cleanTo, subject, body)
+    .catch(err465 => {
+      console.warn("SMTP 465 failed, trying 587 fallback:", err465.message);
+      return trySmtp587(cleanUser, cleanPassword, cleanTo, subject, body);
+    });
 }
 
 function buildPatientEmailBody(db, booking) {
