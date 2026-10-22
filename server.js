@@ -71,7 +71,7 @@ function isAuthed(req, db) {
 
 function cleanSessions(db) {
   const now = Date.now();
-  db.auth = db.auth || { adminPassword: "change-me-before-public", sessions: [] };
+  db.auth = db.auth || { adminPassword: "aran2026", sessions: [] };
   db.auth.sessions = (db.auth.sessions || []).filter(session => new Date(session.expiresAt).getTime() > now);
 }
 
@@ -968,7 +968,7 @@ async function handleApi(req, res) {
   if (req.method === "POST" && url.pathname === "/api/login") {
     const input = await readBody(req);
     cleanSessions(db);
-    const expected = process.env.ADMIN_PASSWORD || db.auth?.adminPassword || "change-me-before-public";
+    const expected = process.env.ADMIN_PASSWORD || db.auth?.adminPassword || "aran2026";
     if (String(input.password || "") !== expected) {
       sendJson(res, 401, { error: "invalid password" });
       return;
@@ -1003,7 +1003,7 @@ async function handleApi(req, res) {
     const input = await readBody(req);
     const currentPassword = String(input.currentPassword || "");
     const newPassword = String(input.newPassword || "");
-    const expected = process.env.ADMIN_PASSWORD || db.auth?.adminPassword || "change-me-before-public";
+    const expected = process.env.ADMIN_PASSWORD || db.auth?.adminPassword || "aran2026";
 
     if (currentPassword !== expected) {
       sendJson(res, 400, { error: "current password is incorrect" });
