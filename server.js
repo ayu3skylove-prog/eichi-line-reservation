@@ -1408,7 +1408,15 @@ function serveStatic(req, res) {
       return;
     }
     const ext = path.extname(filePath);
-    res.writeHead(200, { "Content-Type": contentTypes[ext] || "application/octet-stream" });
+    const headers = {
+      "Content-Type": contentTypes[ext] || "application/octet-stream"
+    };
+    if (ext === ".html") {
+      headers["Cache-Control"] = "public, max-age=0, must-revalidate";
+    } else {
+      headers["Cache-Control"] = "public, max-age=86400";
+    }
+    res.writeHead(200, headers);
     res.end(data);
   });
 }
