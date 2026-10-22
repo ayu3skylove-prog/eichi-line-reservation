@@ -197,6 +197,9 @@ function formatJaDate(dateText) {
 
 function sendGmailSmtp({ user, password, to, subject, body }) {
   return new Promise((resolve, reject) => {
+    const cleanUser = String(user || "").trim();
+    const cleanPassword = String(password || "").replace(/\s+/g, "");
+    const cleanTo = String(to || "").trim();
     const socket = tls.connect(465, "smtp.gmail.com", { servername: "smtp.gmail.com" });
     let buf = "";
     let step = 0;
@@ -213,18 +216,18 @@ function sendGmailSmtp({ user, password, to, subject, body }) {
         write("AUTH LOGIN");
       } else if (step === 2) {
         step = 3;
-        write(Buffer.from(user).toString("base64"));
+        write(Buffer.from(cleanUser).toString("base64"));
       } else if (step === 3) {
         step = 4;
-        write(Buffer.from(password).toString("base64"));
+        write(Buffer.from(cleanPassword).toString("base64"));
       } else if (step === 4) {
         if (code !== 235) { socket.destroy(); return reject(new Error(`Gmail auth failed: ${line}`)); }
         step = 5;
-        write(`MAIL FROM:<${user}>`);
+        write(`MAIL FROM:<${cleanUser}>`);
       } else if (step === 5) {
         if (code !== 250) { socket.destroy(); return reject(new Error(`MAIL FROM failed: ${line}`)); }
         step = 6;
-        write(`RCPT TO:<${to}>`);
+        write(`RCPT TO:<${cleanTo}>`);
       } else if (step === 6) {
         if (code !== 250) { socket.destroy(); return reject(new Error(`RCPT TO failed: ${line}`)); }
         step = 7;
@@ -236,8 +239,8 @@ function sendGmailSmtp({ user, password, to, subject, body }) {
         const raw = Buffer.from(body).toString("base64");
         const b64Body = (raw.match(/.{1,76}/g) || [""]).join("\r\n");
         write([
-          `From: ${user}`,
-          `To: ${to}`,
+          `From: ${cleanUser}`,
+          `To: ${cleanTo}`,
           `Subject: ${encSubject}`,
           "MIME-Version: 1.0",
           "Content-Type: text/plain; charset=UTF-8",
@@ -1241,7 +1244,7 @@ async function handleApi(req, res) {
     if (!requireAuth(req, res, db)) return;
     const input = await readBody(req);
     const gmailUser = String(input.gmailUser || "").trim();
-    const gmailAppPassword = String(input.gmailAppPassword || "").trim();
+    const gmailAppPassword = String(input.gmailAppPassword || "").replace(/\s+/g, "");
     const notifyEmail = String(input.notifyEmail || "").trim();
     if (gmailUser && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(gmailUser)) {
       sendJson(res, 400, { error: "Gmailアドレスの形式が正しくありません" });
@@ -1277,7 +1280,9 @@ async function handleApi(req, res) {
       });
       sendJson(res, 200, { ok: true, to: notifyTo, message: `${notifyTo} にテストメールを送信しました。` });
     } catch (err) {
-      sendJson(res, 500, { error: "メール送信に失敗しました。", detail: err.message });
+      console.error("Gmail test error details:", err);
+      const detail = err ? (err.message || String(err)) : "unknown error";
+      sendJson(res, 500, { error: "メール送信に失敗しました。", detail });
     }
     return;
   }
