@@ -169,7 +169,6 @@ function renderMenuCards() {
 function getWeekStart(date) {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() - d.getDay());
   return d;
 }
 
@@ -182,7 +181,13 @@ function addDays(date, n) {
 async function renderWeekMatrix() {
   if (!config || !menuIdInput.value) return;
 
-  const todayText = toDateString(new Date());
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (prevWeekButton) {
+    prevWeekButton.disabled = currentWeekStart <= today;
+  }
+
+  const todayText = toDateString(today);
   const days = Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i));
   const dayStrings = days.map(toDateString);
 
@@ -395,7 +400,10 @@ editBookingButton.addEventListener("click", () => {
 });
 
 prevWeekButton.addEventListener("click", async () => {
-  currentWeekStart = addDays(currentWeekStart, -7);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = addDays(currentWeekStart, -7);
+  currentWeekStart = target < today ? today : target;
   await renderWeekMatrix();
 });
 

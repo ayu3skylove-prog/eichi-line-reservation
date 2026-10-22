@@ -15,10 +15,10 @@
     "adminEmail": "3secret.place5@gmail.com",
     "contactEmail": "3secret.place5@gmail.com",
     "contactPhone": "",
-    "googleCalendarIcalUrl": "",
-    "gmailUser": "",
+    "googleCalendarIcalUrl": "https://calendar.google.com/calendar/ical/8.eichi.9%40gmail.com/private-f1c2dd07ab6c5489a452d99b4e959d16/basic.ics",
+    "gmailUser": "8.eichi.9@gmail.com",
     "gmailAppPassword": "",
-    "notifyEmail": ""
+    "notifyEmail": "8.eichi.9@gmail.com"
   },
   "auth": {
     "adminPassword": "aran2026",
