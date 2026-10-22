@@ -1,6 +1,7 @@
 const http = require("http");
 const https = require("https");
 const tls = require("tls");
+const net = require("net");
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
