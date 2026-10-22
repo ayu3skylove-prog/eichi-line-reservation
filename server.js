@@ -32,7 +32,21 @@ function readDb() {
     fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
     fs.copyFileSync(DB_EXAMPLE_PATH, DB_PATH);
   }
-  return JSON.parse(fs.readFileSync(DB_PATH, "utf8"));
+  const db = JSON.parse(fs.readFileSync(DB_PATH, "utf8"));
+  if (fs.existsSync(DB_EXAMPLE_PATH)) {
+    try {
+      const example = JSON.parse(fs.readFileSync(DB_EXAMPLE_PATH, "utf8"));
+      if (example && example.settings) {
+        if (!db.settings.googleCalendarIcalUrl && example.settings.googleCalendarIcalUrl) {
+          db.settings.googleCalendarIcalUrl = example.settings.googleCalendarIcalUrl;
+        }
+        if (!db.settings.adminEmail && example.settings.adminEmail) {
+          db.settings.adminEmail = example.settings.adminEmail;
+        }
+      }
+    } catch {}
+  }
+  return db;
 }
 
 function writeDb(db) {
