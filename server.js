@@ -523,7 +523,7 @@ async function sendBookingEmails(db, booking) {
 // ─── Google Calendar iCal 連携 ────────────────────────────
 
 const icalCache = { events: null, fetchedAt: 0 };
-const ICAL_CACHE_TTL = 15 * 60 * 1000;
+const ICAL_CACHE_TTL = 20 * 1000; // 20秒（Googleカレンダーの変更がほぼリアルタイムで即時反映されるように短縮）
 
 function fetchIcalText(url) {
   return new Promise((resolve) => {
