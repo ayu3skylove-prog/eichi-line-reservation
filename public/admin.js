@@ -55,6 +55,12 @@ const gmailAppPasswordInput = document.querySelector("#gmailAppPasswordInput");
 const notifyEmailInput = document.querySelector("#notifyEmailInput");
 const gmailTestButton = document.querySelector("#gmailTestButton");
 const gmailMessage = document.querySelector("#gmailMessage");
+let currentBookingFilter = "all";
+const tabFilterAll = document.querySelector("#tabFilterAll");
+const tabFilterWeb = document.querySelector("#tabFilterWeb");
+const tabFilterGcal = document.querySelector("#tabFilterGcal");
+const gcalSyncCountBadge = document.querySelector("#gcalSyncCountBadge");
+const gcalSyncNowButton = document.querySelector("#gcalSyncNowButton");
 
 function menuName(menuId) {
   const menu = menus.find(item => item.id === menuId);
@@ -417,22 +423,26 @@ function renderSchedule(bookings = allBookings) {
       if (startingBooking) {
         cell.classList.add("has-booking");
         cell.dataset.bookingId = startingBooking.id;
+        const gcalConflict = gcalBlock ? `<span class="slot-sub" style="font-weight:700; color:#b71c1c; background:#ffebee; border:1px solid #ef9a9a; border-radius:3px; padding:2px 4px; margin-top:2px; display:block;">⚠️ G重複: ${escapeHtml(gcalBlock.summary)}</span>` : "";
         cell.innerHTML = `
-          <span class="slot-name">${escapeHtml(startingBooking.name)}</span>
+          <span class="slot-name">${escapeHtml(startingBooking.name)} (WEB)</span>
           <span class="slot-sub">${escapeHtml(menuName(startingBooking.menuId))}</span>
           <span class="slot-range">${escapeHtml(bookingOccupiedRange(startingBooking))}</span>
+          ${gcalConflict}
         `;
       } else if (continuingBooking) {
         cell.classList.add("treatment");
         cell.dataset.bookingId = continuingBooking.id;
-        cell.innerHTML = `<span class="slot-sub">施術中</span>`;
+        const gcalConflict = gcalBlock ? `<span class="slot-sub" style="font-weight:700; color:#b71c1c; background:#ffebee; border:1px solid #ef9a9a; border-radius:3px; padding:2px 4px; margin-top:2px; display:block;">⚠️ G重複: ${escapeHtml(gcalBlock.summary)}</span>` : "";
+        cell.innerHTML = `<span class="slot-sub">施術中</span>${gcalConflict}`;
       } else if (block) {
         cell.classList.add("blocked");
         cell.innerHTML = `<span class="slot-sub">手動ブロック</span><span class="slot-range">${escapeHtml(blockReason(block))}</span>`;
       } else if (overlappingBooking) {
         cell.classList.add("treatment");
         cell.dataset.bookingId = overlappingBooking.id;
-        cell.innerHTML = `<span class="slot-sub">施術中</span>`;
+        const gcalConflict = gcalBlock ? `<span class="slot-sub" style="font-weight:700; color:#b71c1c; background:#ffebee; border:1px solid #ef9a9a; border-radius:3px; padding:2px 4px; margin-top:2px; display:block;">⚠️ G重複: ${escapeHtml(gcalBlock.summary)}</span>` : "";
+        cell.innerHTML = `<span class="slot-sub">施術中</span>${gcalConflict}`;
       } else if (gcalBlock) {
         cell.classList.add("gcal-blocked");
         cell.title = `Googleカレンダー: ${gcalBlock.summary}`;
@@ -695,7 +705,16 @@ function openSlotDialog(date, time) {
   slotExistingPanel.innerHTML = "";
   slotCreatePanel.hidden = false;
 
-  if (booking) {
+  if (booking && gcalBlock) {
+    slotExistingPanel.innerHTML = `
+      <div style="background:#fff3e0; border:1px solid #ffb74d; border-radius:8px; padding:12px; margin-bottom:12px;">
+        <strong style="color:#e65100; font-size:14px;">⚠️ WEB予約とGoogleカレンダーの予定が重複しています</strong>
+        <p style="margin:4px 0 0; color:#333; font-weight:600;">📅 Googleカレンダー予定: ${escapeHtml(gcalBlock.summary)}</p>
+        <p style="margin:4px 0 0; font-size:12px; color:#666;">※ WEB予約が入っている時間帯にGoogleカレンダーの予定が設定されています。</p>
+      </div>
+    `;
+    showBookingDetails(booking);
+  } else if (booking) {
     showBookingDetails(booking);
   } else if (block) {
     showBlockDetails(date, time, block);
@@ -796,30 +815,15 @@ async function loadBookings() {
       gcalEvents = [];
     }
   }
+  if (gcalSyncCountBadge) {
+    gcalSyncCountBadge.textContent = `同期中: ${gcalEvents.length}件の予定を取得中`;
+  }
   menus = config.menus || [];
   options = config.options || [];
   allBookings = data.bookings || [];
   fillSettings(config);
   renderSchedule(allBookings);
-
-  rows.innerHTML = "";
-  emptyMessage.textContent = data.bookings.length ? "" : "まだ予約はありません。";
-
-  for (const booking of data.bookings) {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${escapeHtml(booking.date)}<br>${escapeHtml(booking.time)}</td>
-      <td>${escapeHtml(menuName(booking.menuId))}<br><small>追加：${escapeHtml(optionNames(booking.optionIds))}</small></td>
-      <td>${escapeHtml(booking.name)}<br>${escapeHtml(booking.kana)}</td>
-      <td>${escapeHtml(booking.phone)}<br>${escapeHtml(booking.email)}</td>
-      <td>${escapeHtml(booking.note)}</td>
-      <td><span class="status ${booking.status}">${booking.status === "cancelled" ? "キャンセル" : "確定"}</span></td>
-      <td>
-        ${booking.status === "cancelled" ? "" : `<button class="danger-button" data-cancel="${booking.id}" type="button">キャンセル</button>`}
-      </td>
-    `;
-    rows.append(tr);
-  }
+  renderBookingsTable();
 
   notificationList.innerHTML = "";
   if (!notificationData.notifications.length) {
@@ -1025,6 +1029,136 @@ rows.addEventListener("click", event => {
   const button = event.target.closest("[data-cancel]");
   if (button) cancelBooking(button.dataset.cancel);
 });
+
+function updateBookingFilterTabs() {
+  const tabs = [
+    { btn: tabFilterAll, mode: "all" },
+    { btn: tabFilterWeb, mode: "web" },
+    { btn: tabFilterGcal, mode: "gcal" }
+  ];
+  tabs.forEach(({ btn, mode }) => {
+    if (!btn) return;
+    if (currentBookingFilter === mode) {
+      btn.style.background = mode === "web" ? "#2e7d32" : "#5e2a84";
+      btn.style.color = "#fff";
+      btn.style.borderColor = btn.style.background;
+    } else {
+      btn.style.background = "";
+      btn.style.color = mode === "web" ? "#2e7d32" : (mode === "gcal" ? "#5e2a84" : "");
+      btn.style.borderColor = "";
+    }
+  });
+}
+
+function renderBookingsTable() {
+  updateBookingFilterTabs();
+  rows.innerHTML = "";
+
+  const webItems = allBookings.map(b => ({
+    type: "web",
+    date: b.date,
+    time: b.time,
+    sortKey: `${b.date} ${b.time}`,
+    title: menuName(b.menuId),
+    subTitle: optionNames(b.optionIds) !== "なし" ? `追加: ${optionNames(b.optionIds)}` : "",
+    person: `${b.name}${b.kana ? `（${b.kana}）` : ""}`,
+    contact: `${b.phone || ""}${b.email ? ` / ${b.email}` : ""}`,
+    note: b.note || "—",
+    status: b.status === "cancelled" ? "キャンセル" : "確定",
+    statusClass: b.status,
+    bookingId: b.id,
+    isCancelled: b.status === "cancelled"
+  }));
+
+  const cutoff = addDays(todayText(), -3);
+  const gcalItems = gcalEvents
+    .filter(ev => ev.dateText >= cutoff)
+    .map(ev => {
+      const timeStr = ev.isAllDay ? "終日" : `${timeFromMinutes(ev.startMinutes)}〜${timeFromMinutes(ev.endMinutes)}`;
+      const sortTime = ev.isAllDay ? "00:00" : timeFromMinutes(ev.startMinutes);
+      return {
+        type: "gcal",
+        date: ev.dateText,
+        time: timeStr,
+        sortKey: `${ev.dateText} ${sortTime}`,
+        title: ev.summary,
+        subTitle: "Googleカレンダー予定",
+        person: "—",
+        contact: "Googleカレンダー同期",
+        note: "予約枠自動ブロック中",
+        status: "同期中",
+        statusClass: "confirmed",
+        bookingId: null,
+        isCancelled: false
+      };
+    });
+
+  let items = [];
+  if (currentBookingFilter === "all") {
+    items = [...webItems, ...gcalItems];
+  } else if (currentBookingFilter === "web") {
+    items = webItems;
+  } else if (currentBookingFilter === "gcal") {
+    items = gcalItems;
+  }
+  items.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+
+  if (!items.length) {
+    emptyMessage.textContent = currentBookingFilter === "web"
+      ? "まだWEB予約はありません。"
+      : (currentBookingFilter === "gcal" ? "Googleカレンダーの予定はありません。" : "該当する予約・予定はありません。");
+    return;
+  }
+  emptyMessage.textContent = "";
+
+  for (const item of items) {
+    const tr = document.createElement("tr");
+    if (item.type === "gcal") {
+      tr.style.background = "#faf7fc";
+    }
+    const badge = item.type === "web"
+      ? `<span style="background:#e8f5e9; color:#2e7d32; font-weight:700; font-size:11px; padding:3px 8px; border-radius:4px; display:inline-block;">WEB予約</span>`
+      : `<span style="background:#f4edf8; color:#5e2a84; font-weight:700; font-size:11px; padding:3px 8px; border-radius:4px; border:1px solid #c9aedb; display:inline-block;">📅 Google予定</span>`;
+
+    const action = item.type === "web"
+      ? (item.isCancelled ? "" : `<button class="danger-button" data-cancel="${item.bookingId}" type="button">キャンセル</button>`)
+      : `<a href="https://calendar.google.com" target="_blank" rel="noopener" style="font-size:11px; color:#5e2a84; font-weight:600; text-decoration:underline;">Gカレンダー ↗</a>`;
+
+    tr.innerHTML = `
+      <td><strong>${escapeHtml(item.date)}</strong><br>${escapeHtml(item.time)}</td>
+      <td>${badge}</td>
+      <td><strong>${escapeHtml(item.title)}</strong>${item.subTitle ? `<br><small style="color:#666;">${escapeHtml(item.subTitle)}</small>` : ""}</td>
+      <td>${escapeHtml(item.person)}${item.contact ? `<br><small style="color:#666;">${escapeHtml(item.contact)}</small>` : ""}</td>
+      <td><small style="color:#555;">${escapeHtml(item.note)}</small></td>
+      <td><span class="status ${item.statusClass}">${escapeHtml(item.status)}</span></td>
+      <td>${action}</td>
+    `;
+    rows.append(tr);
+  }
+}
+
+if (tabFilterAll) tabFilterAll.addEventListener("click", () => { currentBookingFilter = "all"; renderBookingsTable(); });
+if (tabFilterWeb) tabFilterWeb.addEventListener("click", () => { currentBookingFilter = "web"; renderBookingsTable(); });
+if (tabFilterGcal) tabFilterGcal.addEventListener("click", () => { currentBookingFilter = "gcal"; renderBookingsTable(); });
+
+if (gcalSyncNowButton) {
+  gcalSyncNowButton.addEventListener("click", async () => {
+    gcalSyncNowButton.disabled = true;
+    gcalSyncNowButton.textContent = "同期中...";
+    try {
+      await fetch("/api/gcal-sync", { method: "POST" });
+      await loadBookings();
+      gcalSyncNowButton.textContent = "✓ 最新同期完了！";
+      setTimeout(() => {
+        gcalSyncNowButton.disabled = false;
+        gcalSyncNowButton.textContent = "🔄 Googleカレンダーを今すぐ再同期";
+      }, 2000);
+    } catch {
+      gcalSyncNowButton.disabled = false;
+      gcalSyncNowButton.textContent = "再試行";
+    }
+  });
+}
 
 gmailForm.addEventListener("submit", async event => {
   event.preventDefault();

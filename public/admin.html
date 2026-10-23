@@ -45,6 +45,16 @@
             <button id="scheduleNextButton" class="secondary-button" type="button">翌週</button>
           </div>
         </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; background:#f6f0fa; border:1px solid #c9aedb; border-radius:8px; padding:8px 14px; margin: 12px 0 8px; flex-wrap:wrap; gap:8px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#2e7d32;"></span>
+            <span style="font-size:13px; font-weight:700; color:#5e2a84;">Googleカレンダー自動連携中</span>
+            <span id="gcalSyncCountBadge" style="font-size:12px; background:#fff; border:1px solid #c9aedb; border-radius:12px; padding:2px 8px; color:#555;">同期中...</span>
+          </div>
+          <button id="gcalSyncNowButton" type="button" class="secondary-button" style="font-size:12px; padding:4px 12px; cursor:pointer;">
+            🔄 Googleカレンダーを今すぐ再同期
+          </button>
+        </div>
         <div class="calendar-statusbar">
           <strong id="scheduleDateLabel"></strong>
           <span id="scheduleCountLabel"></span>
@@ -310,18 +320,28 @@
       </section>
 
       <section id="bookingsTableSection" class="panel">
-        <h2>予約一覧</h2>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+          <div>
+            <h2 style="margin:0;">予約・予定一覧</h2>
+            <p class="lead" style="margin:4px 0 0; font-size:13px; color:#666;">WEB予約とGoogleカレンダーの予定を一覧で確認・管理できます。</p>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button type="button" id="tabFilterAll" class="secondary-button" style="font-size:12px; font-weight:700; padding:6px 12px; background:#5e2a84; color:#fff; border-color:#5e2a84;">すべて</button>
+            <button type="button" id="tabFilterWeb" class="secondary-button" style="font-size:12px; font-weight:700; padding:6px 12px;">WEB予約のみ</button>
+            <button type="button" id="tabFilterGcal" class="secondary-button" style="font-size:12px; font-weight:700; padding:6px 12px; color:#5e2a84; border-color:#c9aedb;">📅 Google予定のみ</button>
+          </div>
+        </div>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
                 <th>日時</th>
-                <th>メニュー</th>
-                <th>お名前</th>
-                <th>連絡先</th>
-                <th>メモ</th>
+                <th>種別</th>
+                <th>メニュー / 予定名</th>
+                <th>お名前 / 連絡先</th>
+                <th>メモ / 補足</th>
                 <th>状態</th>
-                <th></th>
+                <th>操作</th>
               </tr>
             </thead>
             <tbody id="bookingRows"></tbody>
