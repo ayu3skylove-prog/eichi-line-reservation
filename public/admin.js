@@ -49,6 +49,7 @@ const dialogBlockReasonInput = document.querySelector("#dialogBlockReasonInput")
 const slotDialogMessage = document.querySelector("#slotDialogMessage");
 const slotSubmitButton = document.querySelector("#slotSubmitButton");
 const gmailForm = document.querySelector("#gmailForm");
+const emailWebhookUrlInput = document.querySelector("#emailWebhookUrlInput");
 const gmailUserInput = document.querySelector("#gmailUserInput");
 const gmailAppPasswordInput = document.querySelector("#gmailAppPasswordInput");
 const notifyEmailInput = document.querySelector("#notifyEmailInput");
@@ -84,6 +85,9 @@ function setGmailMessage(text, type = "") {
 }
 
 function fillGmailSettings(settings) {
+  if (emailWebhookUrlInput) {
+    emailWebhookUrlInput.value = settings.emailWebhookUrl || "";
+  }
   gmailUserInput.value = settings.gmailUser || "";
   gmailAppPasswordInput.value = "";
   gmailAppPasswordInput.placeholder = settings.gmailAppPasswordSet
@@ -1030,6 +1034,7 @@ gmailForm.addEventListener("submit", async event => {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
+      emailWebhookUrl: formData.get("emailWebhookUrl"),
       gmailUser: formData.get("gmailUser"),
       gmailAppPassword: formData.get("gmailAppPassword"),
       notifyEmail: formData.get("notifyEmail")
@@ -1043,7 +1048,7 @@ gmailForm.addEventListener("submit", async event => {
   }
   gmailAppPasswordInput.value = "";
   gmailAppPasswordInput.placeholder = data.gmailAppPasswordSet ? "（設定済み・変更する場合のみ入力）" : "xxxx xxxx xxxx xxxx";
-  setGmailMessage("Gmail設定を保存しました。", "success");
+  setGmailMessage("メール送信設定を保存しました。", "success");
 });
 
 gmailTestButton.addEventListener("click", async () => {

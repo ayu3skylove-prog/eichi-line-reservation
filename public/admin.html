@@ -127,28 +127,42 @@
       <section id="gmailSection" class="panel settings-panel gmail-panel" style="border: 2px solid #5e2a84;">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="background:#5e2a84;color:#fff;border-radius:4px;padding:2px 8px;font-size:12px;font-weight:700;">設定</span>
-          <h2 style="margin:0;">Gmail自動送信設定</h2>
+          <h2 style="margin:0;">予約確定メール自動送信設定</h2>
         </div>
-        <p class="lead" style="margin-top:8px;">予約完了時に患者さんと院長宛てへ確認メールを自動送信します。GmailのSMTPを使用します。</p>
+        <p class="lead" style="margin-top:8px;">予約完了時に患者さんと院長宛てへ確認メールを自動送信します。</p>
         <form id="gmailForm" class="form">
-          <div class="two-col">
-            <label>
-              Gmailアドレス（送信元）
-              <input id="gmailUserInput" name="gmailUser" type="email" placeholder="example@gmail.com">
-            </label>
-            <label>
-              Gmailアプリパスワード（16桁）
-              <input id="gmailAppPasswordInput" name="gmailAppPassword" type="password" placeholder="xxxx xxxx xxxx xxxx" autocomplete="off">
-              <small style="color:var(--muted);font-size:12px;font-weight:400;">Googleアカウント →「2段階認証」→「アプリパスワード」で16桁を発行してください。</small>
-            </label>
+          <div style="background:#fcf9f2; border:1px solid #e2d7c5; border-radius:8px; padding:16px; margin-bottom:16px;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+              <span style="background:#2e7d32; color:#fff; font-size:11px; font-weight:700; padding:2px 6px; border-radius:4px;">推奨・確実</span>
+              <strong style="color:#2a241e; font-size:14px;">Google Apps Script (GAS) Webhook URL</strong>
+            </div>
+            <p style="font-size:12px; color:#555; margin:0 0 8px 0; line-height:1.5;">
+              Renderサーバーの通信制限を受けず、院長のGmail（<code>8.eichi.9@gmail.com</code>）から患者さんへ100%確実にメールが届きます。
+            </p>
+            <input id="emailWebhookUrlInput" name="emailWebhookUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec" style="width:100%; font-family:monospace; font-size:13px;">
           </div>
+
+          <details style="margin-bottom:16px;">
+            <summary style="font-size:13px; color:#666; cursor:pointer; font-weight:600;">▶ 直接SMTP送信設定（有料サーバーまたはSMTP接続時）</summary>
+            <div class="two-col" style="margin-top:12px;">
+              <label>
+                Gmailアドレス（送信元）
+                <input id="gmailUserInput" name="gmailUser" type="email" placeholder="example@gmail.com">
+              </label>
+              <label>
+                Gmailアプリパスワード（16桁）
+                <input id="gmailAppPasswordInput" name="gmailAppPassword" type="password" placeholder="xxxx xxxx xxxx xxxx" autocomplete="off">
+              </label>
+            </div>
+          </details>
+
           <label>
             院長通知先メール（未設定時はGmailアドレスに届きます）
             <input id="notifyEmailInput" name="notifyEmail" type="email" placeholder="owner@example.com">
           </label>
-          <div style="display:flex;gap:12px;flex-wrap:wrap;">
-            <button type="submit">Gmail設定を保存</button>
-            <button id="gmailTestButton" class="secondary-button" type="button">テスト送信</button>
+          <div style="display:flex;gap:12px;flex-wrap:wrap; margin-top:16px;">
+            <button type="submit">メール送信設定を保存</button>
+            <button id="gmailTestButton" class="secondary-button" type="button">テストメール送信</button>
           </div>
           <p id="gmailMessage" class="message" role="status"></p>
         </form>

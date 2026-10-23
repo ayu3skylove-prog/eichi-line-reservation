@@ -43,6 +43,18 @@ function readDb() {
         if (!db.settings.adminEmail && example.settings.adminEmail) {
           db.settings.adminEmail = example.settings.adminEmail;
         }
+        if (!db.settings.emailWebhookUrl && example.settings.emailWebhookUrl) {
+          db.settings.emailWebhookUrl = example.settings.emailWebhookUrl;
+        }
+        if (!db.settings.gmailUser && example.settings.gmailUser) {
+          db.settings.gmailUser = example.settings.gmailUser;
+        }
+        if (!db.settings.gmailAppPassword && example.settings.gmailAppPassword) {
+          db.settings.gmailAppPassword = example.settings.gmailAppPassword;
+        }
+        if (!db.settings.notifyEmail && example.settings.notifyEmail) {
+          db.settings.notifyEmail = example.settings.notifyEmail;
+        }
       }
       if (example && Array.isArray(example.bookings)) {
         db.bookings = db.bookings || [];
@@ -404,6 +416,66 @@ function sendGmailSmtp({ user, password, to, subject, body }) {
     });
 }
 
+function postJsonWithRedirect(targetUrl, payload, maxRedirects = 3) {
+  return new Promise((resolve, reject) => {
+    if (maxRedirects < 0) return reject(new Error("Too many redirects"));
+    const urlObj = new URL(targetUrl);
+    const bodyStr = typeof payload === "string" ? payload : JSON.stringify(payload);
+    const options = {
+      hostname: urlObj.hostname,
+      port: urlObj.port || (urlObj.protocol === "https:" ? 443 : 80),
+      path: urlObj.pathname + urlObj.search,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(bodyStr)
+      },
+      timeout: 15000
+    };
+    const mod = urlObj.protocol === "https:" ? https : http;
+    const req = mod.request(options, (res) => {
+      if ([301, 302, 303, 307].includes(res.statusCode) && res.headers.location) {
+        const redirectUrl = new URL(res.headers.location, targetUrl).toString();
+        const getMod = redirectUrl.startsWith("https:") ? https : http;
+        getMod.get(redirectUrl, { timeout: 15000 }, (redirRes) => {
+          let data = "";
+          redirRes.setEncoding("utf8");
+          redirRes.on("data", chunk => data += chunk);
+          redirRes.on("end", () => resolve({ statusCode: redirRes.statusCode, data }));
+        }).on("error", () => resolve({ statusCode: res.statusCode, data: "redirected" }));
+        return;
+      }
+      let data = "";
+      res.setEncoding("utf8");
+      res.on("data", chunk => data += chunk);
+      res.on("end", () => resolve({ statusCode: res.statusCode, data }));
+    });
+    req.on("error", reject);
+    req.on("timeout", () => { req.destroy(); reject(new Error("Request timeout")); });
+    req.write(bodyStr);
+    req.end();
+  });
+}
+
+async function sendEmailMessage(db, { to, subject, body }) {
+  const webhookUrl = (db.settings.emailWebhookUrl || process.env.EMAIL_WEBHOOK_URL || "").trim();
+  if (webhookUrl) {
+    const res = await postJsonWithRedirect(webhookUrl, {
+      to,
+      subject,
+      body,
+      fromName: db.settings.clinicName || "美身堂えいち鍼灸院"
+    });
+    return res;
+  }
+  const user = db.settings.gmailUser || "";
+  const pwd = db.settings.gmailAppPassword || "";
+  if (user && pwd) {
+    return sendGmailSmtp({ user, password: pwd, to, subject, body });
+  }
+  throw new Error("メール送信設定（GAS Webhook または Gmail設定）が未完了です。");
+}
+
 function buildPatientEmailBody(db, booking) {
   const { menu, options, duration, price } = bookingDetails(db, booking);
   const lines = [
@@ -479,18 +551,19 @@ function buildClinicEmailBody(db, booking) {
 }
 
 async function sendBookingEmails(db, booking) {
+  const webhookUrl = (db.settings.emailWebhookUrl || process.env.EMAIL_WEBHOOK_URL || "").trim();
   const user = db.settings.gmailUser || "";
   const pwd = db.settings.gmailAppPassword || "";
-  if (!user || !pwd) return;
+  if (!webhookUrl && (!user || !pwd)) return;
 
-  const notifyTo = db.settings.notifyEmail || user;
+  const notifyTo = db.settings.notifyEmail || user || "8.eichi.9@gmail.com";
   const mmdd = booking.date.slice(5).replace("-", "/");
   const results = [];
 
   if (booking.email) {
     try {
-      await sendGmailSmtp({
-        user, password: pwd, to: booking.email,
+      await sendEmailMessage(db, {
+        to: booking.email,
         subject: "【美身堂えいち鍼灸院】ご予約ありがとうございます（予約完了）",
         body: buildPatientEmailBody(db, booking)
       });
@@ -502,8 +575,8 @@ async function sendBookingEmails(db, booking) {
   }
 
   try {
-    await sendGmailSmtp({
-      user, password: pwd, to: notifyTo,
+    await sendEmailMessage(db, {
+      to: notifyTo,
       subject: `【美身堂えいち】新規予約通知: ${booking.name}様（${mmdd} ${booking.time}）`,
       body: buildClinicEmailBody(db, booking)
     });
@@ -1381,6 +1454,7 @@ async function handleApi(req, res) {
   if (req.method === "PUT" && url.pathname === "/api/gmail-settings") {
     if (!requireAuth(req, res, db)) return;
     const input = await readBody(req);
+    const emailWebhookUrl = String(input.emailWebhookUrl || "").trim();
     const gmailUser = String(input.gmailUser || "").trim();
     const gmailAppPassword = String(input.gmailAppPassword || "").replace(/\s+/g, "");
     const notifyEmail = String(input.notifyEmail || "").trim();
@@ -1388,12 +1462,14 @@ async function handleApi(req, res) {
       sendJson(res, 400, { error: "Gmailアドレスの形式が正しくありません" });
       return;
     }
+    db.settings.emailWebhookUrl = emailWebhookUrl;
     db.settings.gmailUser = gmailUser;
     if (gmailAppPassword) db.settings.gmailAppPassword = gmailAppPassword;
     db.settings.notifyEmail = notifyEmail;
     writeDb(db);
     sendJson(res, 200, {
       ok: true,
+      emailWebhookUrl: db.settings.emailWebhookUrl,
       gmailUser: db.settings.gmailUser,
       gmailAppPasswordSet: Boolean(db.settings.gmailAppPassword),
       notifyEmail: db.settings.notifyEmail
@@ -1403,22 +1479,23 @@ async function handleApi(req, res) {
 
   if (req.method === "POST" && url.pathname === "/api/gmail-test") {
     if (!requireAuth(req, res, db)) return;
+    const webhookUrl = (db.settings.emailWebhookUrl || "").trim();
     const user = db.settings.gmailUser || "";
     const pwd = db.settings.gmailAppPassword || "";
-    if (!user || !pwd) {
-      sendJson(res, 400, { error: "GmailアドレスとアプリパスワードをGmail設定に保存してください" });
+    if (!webhookUrl && (!user || !pwd)) {
+      sendJson(res, 400, { error: "GAS Webhook URL または Gmail設定（アドレス・アプリパスワード）を入力して保存してください" });
       return;
     }
-    const notifyTo = db.settings.notifyEmail || user;
+    const notifyTo = db.settings.notifyEmail || user || "8.eichi.9@gmail.com";
     try {
-      await sendGmailSmtp({
-        user, password: pwd, to: notifyTo,
-        subject: "【美身堂えいち鍼灸院】Gmail自動送信テスト",
-        body: `テスト送信です。\n\nこのメールが届いていれば、Gmail自動送信の設定は正常です。\n\n送信元: ${user}\n送信先: ${notifyTo}`
+      await sendEmailMessage(db, {
+        to: notifyTo,
+        subject: "【美身堂えいち鍼灸院】自動送信テストメール",
+        body: `テスト送信です。\n\nこのメールが届いていれば、WEB予約確定メールの自動送信設定は正常に稼働しています。\n\n送信先: ${notifyTo}`
       });
       sendJson(res, 200, { ok: true, to: notifyTo, message: `${notifyTo} にテストメールを送信しました。` });
     } catch (err) {
-      console.error("Gmail test error details:", err);
+      console.error("Email test error details:", err);
       const detail = err ? (err.message || String(err)) : "unknown error";
       sendJson(res, 500, { error: "メール送信に失敗しました。", detail });
     }

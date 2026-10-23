@@ -318,9 +318,25 @@ function renderConfirmationActions(data) {
   const googleUrl = googleCalendarUrl(data.booking, data.calendar);
   confirmationActions.hidden = false;
   confirmationActions.innerHTML = `
-    <a class="button-link" href="${googleUrl}" target="_blank" rel="noopener">Googleカレンダーに追加</a>
-    <a class="button-link secondary-link" href="${data.calendar.icsUrl}">iPhone/Macカレンダーに追加</a>
+    <div style="display:flex; flex-direction:column; gap:10px; width:100%; margin-top:12px;">
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <a class="button-link" href="${googleUrl}" target="_blank" rel="noopener" style="flex:1 1 200px; text-align:center;">📅 Googleカレンダーに追加</a>
+        <a class="button-link secondary-link" href="${data.calendar.icsUrl}" style="flex:1 1 200px; text-align:center;">🗓 iPhone/Macカレンダーに追加</a>
+      </div>
+      <button type="button" id="resetNewBookingButton" class="secondary-button" style="width:100%; margin-top:6px; padding:12px; font-weight:700;">
+        ➕ 続けて別の予約を取る
+      </button>
+    </div>
   `;
+  const resetBtn = document.getElementById("resetNewBookingButton");
+  if (resetBtn) {
+    resetBtn.addEventListener("click", () => {
+      bookingReview.hidden = true;
+      confirmationActions.hidden = true;
+      updateStep(1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
 }
 
 function bookingSummaryFromForm() {
@@ -467,10 +483,38 @@ form.addEventListener("submit", async event => {
 
   const data = await res.json();
   setMessage(`${data.booking.date} ${data.booking.time} で予約を受け付けました。ご来院を心よりお待ちしています。`, "success");
+
+  const emailNotice = data.booking.email
+    ? `<div><dt>確認メール</dt><dd><strong>${escapeHtml(data.booking.email)}</strong> 宛てに送信いたしました。<br><small style="color:#666;">※数分経っても届かない場合は迷惑メールフォルダをご確認いただくか、当院（公式LINEまたはお電話）までお問い合わせください。<br>なお、<strong>システム上ご予約は確実に確定しておりますのでご安心ください。</strong></small></dd></div>`
+    : `<div><dt>確認メール</dt><dd><span style="color:#888;">メールアドレス未入力</span><br><small style="color:#666;">※ご予約は正常に確定しております。当日はお気をつけてお越しください。</small></dd></div>`;
+
   bookingReview.innerHTML = `
-    <p class="step-label">Step 5</p>
-    <h2>予約を受け付けました</h2>
-    <p class="review-lead">${escapeHtml(formatDateLabel(data.booking.date))} ${escapeHtml(data.booking.time)} にて承りました。変更が必要な場合は、直接お問い合わせください。</p>
+    <div style="text-align:center; padding:12px 0 18px; border-bottom:2px solid #e0dbd3; margin-bottom:16px;">
+      <div style="display:inline-flex; align-items:center; justify-content:center; width:52px; height:52px; border-radius:50%; background:#e8f5e9; color:#2e7d32; font-size:26px; font-weight:bold; margin-bottom:10px;">✓</div>
+      <p class="step-label" style="color:#2e7d32; font-weight:700; margin:0 0 4px;">Step 5 / 予約完了</p>
+      <h2 style="margin:0 0 8px; font-size:22px; color:#2a241e;">ご予約が確定いたしました</h2>
+      <p class="review-lead" style="font-size:14px; color:#444; line-height:1.6; margin:0;">
+        <strong>${escapeHtml(data.booking.name)} 様</strong>、美身堂えいち鍼灸院へのご予約ありがとうございます。<br>
+        下記の内容で予約システムに確実に登録されました。
+      </p>
+    </div>
+
+    <dl class="review-list" style="margin-bottom:18px;">
+      <div><dt>ご予約日時</dt><dd style="font-size:16px; font-weight:800; color:#5e2a84;">${escapeHtml(formatDateLabel(data.booking.date))} ${escapeHtml(data.booking.time)}〜</dd></div>
+      <div><dt>メニュー</dt><dd><strong>${escapeHtml(data.calendar.menuName)}</strong></dd></div>
+      ${data.calendar.optionNames && data.calendar.optionNames.length ? `<div><dt>追加オプション</dt><dd>${escapeHtml(data.calendar.optionNames.join("、"))}</dd></div>` : ""}
+      <div><dt>お名前</dt><dd>${escapeHtml(data.booking.name)} 様 ${data.booking.kana ? `（${escapeHtml(data.booking.kana)}）` : ""}</dd></div>
+      <div><dt>電話番号</dt><dd>${escapeHtml(data.booking.phone)}</dd></div>
+      ${emailNotice}
+    </dl>
+
+    <div style="background:#fcf9f2; border:1px solid #e8dec8; border-radius:8px; padding:14px 16px; margin-bottom:16px;">
+      <h3 style="font-size:13px; margin:0 0 6px; color:#5e2a84; font-weight:700;">📍 当院の所在地・アクセス</h3>
+      <p style="font-size:12px; margin:0; line-height:1.6; color:#444;">
+        〒790-0814 愛媛県松山市味酒町2丁目18-5 味酒04ビル3階（専用駐車場完備）<br>
+        <a href="https://www.google.com/maps/search/?api=1&query=%E7%BE%8E%E8%BA%AB%E5%A0%82%E3%81%88%E3%81%84%E3%81%A1%E9%8D%BC%E7%81%B8%E9%99%A2+%E6%84%9B%E5%AA%9B%E7%9C%8C%E6%9D%BE%E5%B1%B1%E5%B8%82%E5%91%B3%E9%85%92%E7%94%BA2-18-5" target="_blank" rel="noopener" style="color:#1a73e8; font-weight:700; text-decoration:underline;">Googleマップで道順を確認する ↗</a>
+      </p>
+    </div>
   `;
   bookingReview.hidden = false;
   renderConfirmationActions(data);
