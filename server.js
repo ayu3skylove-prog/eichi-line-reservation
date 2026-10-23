@@ -1101,7 +1101,7 @@ async function handleApi(req, res) {
     writeDb(db);
     res.writeHead(200, {
       "Content-Type": "application/json; charset=utf-8",
-      "Set-Cookie": `${SESSION_COOKIE}=${encodeURIComponent(token)}; HttpOnly; SameSite=Lax; Path=/; Max-Age=43200`
+      "Set-Cookie": `${SESSION_COOKIE}=${encodeURIComponent(token)}; HttpOnly; SameSite=None; Secure; Path=/; Max-Age=43200`
     });
     res.end(JSON.stringify({ ok: true }));
     return;
@@ -1114,7 +1114,7 @@ async function handleApi(req, res) {
     writeDb(db);
     res.writeHead(200, {
       "Content-Type": "application/json; charset=utf-8",
-      "Set-Cookie": `${SESSION_COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0`
+      "Set-Cookie": `${SESSION_COOKIE}=; HttpOnly; SameSite=None; Secure; Path=/; Max-Age=0`
     });
     res.end(JSON.stringify({ ok: true }));
     return;
@@ -1147,7 +1147,7 @@ async function handleApi(req, res) {
     writeDb(db);
     res.writeHead(200, {
       "Content-Type": "application/json; charset=utf-8",
-      "Set-Cookie": `${SESSION_COOKIE}=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0`
+      "Set-Cookie": `${SESSION_COOKIE}=; HttpOnly; SameSite=None; Secure; Path=/; Max-Age=0`
     });
     res.end(JSON.stringify({ ok: true }));
     return;

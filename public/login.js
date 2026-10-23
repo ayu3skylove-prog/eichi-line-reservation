@@ -21,6 +21,19 @@ loginForm.addEventListener("submit", async event => {
     return;
   }
 
+  loginMessage.textContent = "ログインに成功しました。管理画面を開きます...";
+  loginMessage.className = "message success";
+
+  if (window.top !== window.self) {
+    try {
+      window.top.location.href = "https://eichi-line-reservation.onrender.com/admin.html";
+      return;
+    } catch {
+      window.open("https://eichi-line-reservation.onrender.com/admin.html", "_blank");
+      return;
+    }
+  }
+
   location.href = "/admin.html";
 });
 
