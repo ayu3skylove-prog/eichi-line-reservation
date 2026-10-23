@@ -44,6 +44,14 @@ function readDb() {
           db.settings.adminEmail = example.settings.adminEmail;
         }
       }
+      if (example && Array.isArray(example.bookings)) {
+        db.bookings = db.bookings || [];
+        for (const b of example.bookings) {
+          if (!db.bookings.some(item => item.id === b.id)) {
+            db.bookings.push(b);
+          }
+        }
+      }
     } catch {}
   }
   return db;

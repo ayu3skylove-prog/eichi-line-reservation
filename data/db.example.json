@@ -99,7 +99,22 @@
   ],
   "notifications": [],
   "passwordResetRequests": [],
-  "bookings": [],
+  "bookings": [
+    {
+      "id": "f8f61615-09bf-47fb-9ca9-2f80fec26803",
+      "createdAt": "2026-10-23T06:21:14.491Z",
+      "status": "confirmed",
+      "date": "2026-11-05",
+      "time": "14:00",
+      "menuId": "junki-90",
+      "optionIds": [],
+      "name": "松岡あゆみ",
+      "kana": "まつおかあゆみ",
+      "phone": "08040350923",
+      "email": "ayu.3sky.love@gmail.com",
+      "note": "テスト予約"
+    }
+  ],
   "gallery": [
     {
       "id": "slot-1",
