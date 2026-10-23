@@ -13,7 +13,7 @@
         <h1>予約管理</h1>
         <p class="lead">週カレンダーで予約、施術中、予約ブロックをまとめて確認・操作できます。</p>
       </div>
-      <a class="admin-link" href="/">予約ページ</a>
+      <a class="admin-link" href="/reserve.html" target="_blank" rel="noopener">予約ページ（お客様画面） ↗</a>
     </header>
 
     <main class="admin-layout">
@@ -48,9 +48,10 @@
         <div class="calendar-statusbar">
           <strong id="scheduleDateLabel"></strong>
           <span id="scheduleCountLabel"></span>
-          <span class="legend-item booking">予約</span>
+          <span class="legend-item booking">WEB予約</span>
           <span class="legend-item treatment">施術中</span>
-          <span class="legend-item block">予約ブロック</span>
+          <span class="legend-item block">手動ブロック</span>
+          <span class="legend-item gcal" style="background:#f4edf8; color:#5e2a84; border:1px solid #c9aedb; font-weight:600;">Googleカレンダー予定</span>
         </div>
         <div class="schedule-help">空き枠をクリックすると、管理画面から予約追加またはブロック作成ができます。</div>
         <div id="weeklySchedule" class="weekly-schedule" aria-label="週の予約カレンダー"></div>

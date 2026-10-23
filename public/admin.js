@@ -3,6 +3,7 @@ let options = [];
 let manualBlocks = [];
 let currentConfig = null;
 let allBookings = [];
+let gcalEvents = [];
 let selectedSlot = null;
 
 const rows = document.querySelector("#bookingRows");
@@ -242,6 +243,12 @@ function bookingOverlapsSlot(booking, slotStart, slotEnd) {
   return start < slotEnd && end > slotStart;
 }
 
+function gcalOverlapsSlot(event, date, slotStart, slotEnd) {
+  if (event.dateText !== date) return false;
+  if (event.isAllDay) return true;
+  return event.startMinutes < slotEnd && event.endMinutes > slotStart;
+}
+
 function groupedBlocksForDate(date) {
   const blocks = manualBlocks
     .filter(block => block.date === date)
@@ -401,6 +408,7 @@ function renderSchedule(bookings = allBookings) {
       const continuingBooking = visibleBookings.find(booking => booking.date === date && bookingContinuesInSlot(booking, time, slotEnd));
       const overlappingBooking = visibleBookings.find(booking => booking.date === date && bookingOverlapsSlot(booking, time, slotEnd));
       const block = manualBlockAt(date, timeText);
+      const gcalBlock = gcalEvents.find(e => gcalOverlapsSlot(e, date, time, slotEnd));
 
       if (startingBooking) {
         cell.classList.add("has-booking");
@@ -416,11 +424,18 @@ function renderSchedule(bookings = allBookings) {
         cell.innerHTML = `<span class="slot-sub">施術中</span>`;
       } else if (block) {
         cell.classList.add("blocked");
-        cell.innerHTML = `<span class="slot-sub">予約ブロック</span><span class="slot-range">${escapeHtml(blockReason(block))}</span>`;
+        cell.innerHTML = `<span class="slot-sub">手動ブロック</span><span class="slot-range">${escapeHtml(blockReason(block))}</span>`;
       } else if (overlappingBooking) {
         cell.classList.add("treatment");
         cell.dataset.bookingId = overlappingBooking.id;
         cell.innerHTML = `<span class="slot-sub">施術中</span>`;
+      } else if (gcalBlock) {
+        cell.classList.add("gcal-blocked");
+        cell.title = `Googleカレンダー: ${gcalBlock.summary}`;
+        cell.innerHTML = `
+          <span class="slot-sub" style="font-weight:700; font-size:10px; color:#5e2a84;">📅 Google予定</span>
+          <span class="slot-range" style="font-weight:600; color:#3b1e54; font-size:11px;">${escapeHtml(gcalBlock.summary)}</span>
+        `;
       } else {
         cell.innerHTML = `<span class="slot-open">空き</span>`;
       }
@@ -667,6 +682,7 @@ function openSlotDialog(date, time) {
   const end = schedule ? Math.min(start + 60, minutesFromTime(schedule.closeTime)) : start + 60;
   const booking = allBookings.find(item => item.status !== "cancelled" && item.date === date && bookingOverlapsSlot(item, start, start + 30));
   const block = manualBlockAt(date, time);
+  const gcalBlock = gcalEvents.find(e => gcalOverlapsSlot(e, date, start, start + 30));
 
   resetSlotForm();
   slotDialogTitle.textContent = `${formatShortDateLabel(date)} ${time}`;
@@ -679,6 +695,15 @@ function openSlotDialog(date, time) {
     showBookingDetails(booking);
   } else if (block) {
     showBlockDetails(date, time, block);
+  } else if (gcalBlock) {
+    slotExistingPanel.innerHTML = `
+      <div style="background:#f6f0fa; border:1px solid #c9aedb; border-radius:8px; padding:12px; margin-bottom:12px;">
+        <strong style="color:#5e2a84; font-size:14px;">📅 Googleカレンダー連携ブロック</strong>
+        <p style="margin:4px 0 0; color:#333; font-weight:600;">予定：${escapeHtml(gcalBlock.summary)}</p>
+        <p style="margin:4px 0 0; font-size:12px; color:#666;">※ この予定は院長のGoogleカレンダーから自動同期されており、お客様の予約枠を自動でブロックしています。</p>
+      </div>
+    `;
+    slotCreatePanel.hidden = true;
   } else if (!schedule) {
     slotExistingPanel.innerHTML = '<p class="message">この日は休業日です。</p>';
     slotCreatePanel.hidden = true;
@@ -744,11 +769,12 @@ async function cancelBooking(id) {
 }
 
 async function loadBookings() {
-  const [configRes, bookingsRes, notificationsRes, resetRequestsRes] = await Promise.all([
+  const [configRes, bookingsRes, notificationsRes, resetRequestsRes, gcalRes] = await Promise.all([
     fetch("/api/config"),
     fetch("/api/bookings"),
     fetch("/api/notifications"),
-    fetch("/api/password-reset-requests")
+    fetch("/api/password-reset-requests"),
+    fetch("/api/admin-calendar-blocks").catch(() => null)
   ]);
   if (bookingsRes.status === 401 || notificationsRes.status === 401 || resetRequestsRes.status === 401) {
     location.href = "/login.html";
@@ -758,6 +784,14 @@ async function loadBookings() {
   const data = await bookingsRes.json();
   const notificationData = await notificationsRes.json();
   const resetRequestData = await resetRequestsRes.json();
+  if (gcalRes && gcalRes.ok) {
+    try {
+      const gcalData = await gcalRes.json();
+      gcalEvents = gcalData.events || [];
+    } catch {
+      gcalEvents = [];
+    }
+  }
   menus = config.menus || [];
   options = config.options || [];
   allBookings = data.bookings || [];

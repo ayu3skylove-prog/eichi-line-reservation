@@ -577,28 +577,29 @@ function parseIcalEvents(text) {
   const unfolded = text.replace(/\r?\n[ \t]/g, "");
   const lines = unfolded.split(/\r?\n/);
   let inEvent = false;
-  let startKey = "", startVal = "", endKey = "", endVal = "";
+  let startKey = "", startVal = "", endKey = "", endVal = "", summaryVal = "";
 
   for (const line of lines) {
     const upper = line.trim().toUpperCase();
     if (upper === "BEGIN:VEVENT") {
-      inEvent = true; startKey = startVal = endKey = endVal = "";
+      inEvent = true; startKey = startVal = endKey = endVal = summaryVal = "";
     } else if (upper === "END:VEVENT") {
       inEvent = false;
       if (!startVal) continue;
       const start = parseIcalDateValue(startKey, startVal);
       if (!start) continue;
+      const summary = (summaryVal || "").trim() || "Googleカレンダー予定";
       if (start.isAllDay) {
         const end = endVal ? parseIcalDateValue(endKey, endVal) : null;
         const endDateText = end ? end.dateText : start.dateText;
         let d = new Date(start.dateText + "T00:00:00Z");
         const endD = new Date(endDateText + "T00:00:00Z");
         while (d < endD) {
-          events.push({ isAllDay: true, dateText: toDateString(d) });
+          events.push({ isAllDay: true, dateText: toDateString(d), summary });
           d.setUTCDate(d.getUTCDate() + 1);
         }
         if (d.getTime() === new Date(start.dateText + "T00:00:00Z").getTime()) {
-          events.push({ isAllDay: true, dateText: start.dateText });
+          events.push({ isAllDay: true, dateText: start.dateText, summary });
         }
       } else {
         const end = endVal ? parseIcalDateValue(endKey, endVal) : null;
@@ -606,7 +607,8 @@ function parseIcalEvents(text) {
           isAllDay: false,
           dateText: start.dateText,
           startMinutes: start.totalMinutes,
-          endMinutes: end ? end.totalMinutes : start.totalMinutes + 60
+          endMinutes: end ? end.totalMinutes : start.totalMinutes + 60,
+          summary
         });
       }
     } else if (inEvent) {
@@ -617,6 +619,7 @@ function parseIcalEvents(text) {
       const ku = k.toUpperCase();
       if (ku === "DTSTART" || ku.startsWith("DTSTART;")) { startKey = k; startVal = v; }
       else if (ku === "DTEND" || ku.startsWith("DTEND;")) { endKey = k; endVal = v; }
+      else if (ku === "SUMMARY" || ku.startsWith("SUMMARY;")) { summaryVal = v; }
     }
   }
   return events;
@@ -1297,6 +1300,14 @@ async function handleApi(req, res) {
     if (!requireAuth(req, res, db)) return;
     clearIcalCache();
     sendJson(res, 200, { ok: true, message: "iCal cache cleared" });
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/admin-calendar-blocks") {
+    if (!requireAuth(req, res, db)) return;
+    const icalUrl = db.settings.googleCalendarIcalUrl;
+    const events = await getCalendarBlocks(icalUrl);
+    sendJson(res, 200, { ok: true, events });
     return;
   }
 

@@ -1179,6 +1179,12 @@ body:has(.admin-layout) .schedule-controls {
   color: #4e5559;
 }
 
+.week-slot.gcal-blocked {
+  background: #f6f0fa;
+  color: #4a2169;
+  border-left: 3px solid #6b2d8f;
+}
+
 .slot-name,
 .slot-sub,
 .slot-range,
