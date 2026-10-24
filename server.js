@@ -959,9 +959,14 @@ function availabilityForMonth(db, monthText, menuId, optionIds = []) {
 }
 
 function validateBooking(input, db) {
-  const required = ["date", "time", "menuId", "name", "phone"];
+  const required = input.adminEntry
+    ? ["date", "time", "menuId", "name", "phone"]
+    : ["date", "time", "menuId", "name", "phone", "email"];
   for (const field of required) {
     if (!String(input[field] || "").trim()) return `${field} is required`;
+  }
+  if (!input.adminEntry && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(input.email || "").trim())) {
+    return "invalid email";
   }
 
   const menu = db.menus.find(item => item.id === input.menuId);

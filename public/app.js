@@ -448,6 +448,13 @@ form.addEventListener("submit", async event => {
 
   if (!form.reportValidity()) return;
 
+  const emailVal = String(form.elements.email?.value || "").trim();
+  if (!emailVal || !emailVal.includes("@")) {
+    setMessage("メールアドレスを入力してください（予約確定メールをお届けするために必須となっております）。", "error");
+    if (form.elements.email) form.elements.email.focus();
+    return;
+  }
+
   if (!isReviewing) {
     renderBookingReview();
     setMessage("予約内容をご確認ください。");
@@ -470,6 +477,8 @@ form.addEventListener("submit", async event => {
   if (!res.ok) {
     const data = await res.json();
     const messages = {
+      "email is required": "メールアドレスを入力してください（予約確定メールをお届けするために必須となっております）。",
+      "invalid email": "有効なメールアドレスを入力してください（例：name@example.com）。",
       "time already booked": "この時間はすでに予約が入っています。別の時間を選んでください。",
       "time blocked": "この時間は予約できない時間に設定されています。別の時間を選んでください。",
       "daily booking limit reached": "この日は予約枠が上限に達しています。別の日を選んでください。",
